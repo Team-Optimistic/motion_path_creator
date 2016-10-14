@@ -5,6 +5,8 @@
 #include <string>
 #include <geometry_msgs/Point32.h>
 #include <nav_msgs/Odometry.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 class mpCreator
 {
@@ -21,6 +23,8 @@ public:
     // close to us, and
     // in our direction of movement (no sense in turning around to get the
     // "technically" closest object)
+    //
+    // Sort in using std::sort in <algorithm> and comparator function objSortComparator
   }
 
   void odomCallback(const nav_msgs::Odometry::ConstPtr& in)
@@ -42,4 +46,23 @@ public:
 private:
   float x, y, theta;
   float xVel, yVel;
+
+  const float angleWeight = 0.25;
+
+  inline const float distanceToPoint(geometry_msgs::Point32 p) const
+  {
+    return sqrt(pow(p.x - x, 2) * pow(p.y - y, 2));
+  }
+
+  inline const float angleToPoint(geometry_msgs::Point32 p) const
+  {
+    return (atan2(p.y - y, p.x - x) * (180.0 / M_PI)) - theta;
+  }
+
+  bool objSortComparator(geometry_msgs::Point32 a, geometry_msgs::Point32 b)
+  {
+    const float aWeight = distanceToPoint(a) + (angleWeight * angleToPoint(a));
+    const float bWeight = distanceToPoint(b) + (angleWeight * angleToPoint(b));
+    return aWeight <= bWeight;
+  }
 };
