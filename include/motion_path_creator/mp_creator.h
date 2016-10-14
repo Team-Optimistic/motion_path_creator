@@ -1,31 +1,35 @@
 #pragma once
 
-#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/PointCloud.h>
 #include <ros/ros.h>
 #include <string>
 #include <geometry_msgs/Point32.h>
 #include <nav_msgs/Odometry.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <algorithm>
+#include <iterator>
+#include <functional>
+#include <vector>
 
 class mpCreator
 {
 public:
   mpCreator()
   {
-    objSub = n.subscribe<geometry_msgs::Point32>("cloud", 10, &mpCreator::objCallback, this);
+    objSub = n.subscribe<sensor_msgs::PointCloud>("cloud", 10, &mpCreator::objCallback, this);
     odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   }
 
-  void objCallback(const geometry_msgs::Point32::ConstPtr& in)
+  void objCallback(const sensor_msgs::PointCloud::ConstPtr& in)
   {
     //The next object we pick up should be the one which is both:
     // close to us, and
     // in our direction of movement (no sense in turning around to get the
     // "technically" closest object)
-    //
-    // Sort in using std::sort in <algorithm> and comparator function objSortComparator
-    // Put first element of sorted list into currentObject
+    std::vector<geometry_msgs::Point32> objects = in->points;
+    std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::objSortComparator, this, std::placeholders::_1, std::placeholders::_2));
+    currentObject = objects[0];
   }
 
   void odomCallback(const nav_msgs::Odometry::ConstPtr& in)
@@ -54,17 +58,17 @@ private:
 
   const float angleWeight = 0.25;
 
-  inline const float distanceToPoint(geometry_msgs::Point32 p) const
+  inline const float distanceToPoint(const geometry_msgs::Point32& p) const
   {
     return sqrt(pow(p.x - x, 2) * pow(p.y - y, 2));
   }
 
-  inline const float angleToPoint(geometry_msgs::Point32 p) const
+  inline const float angleToPoint(const geometry_msgs::Point32& p) const
   {
     return (atan2(p.y - y, p.x - x) * (180.0 / M_PI)) - theta;
   }
 
-  bool objSortComparator(geometry_msgs::Point32 a, geometry_msgs::Point32 b)
+  bool objSortComparator(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b)
   {
     const float aWeight = distanceToPoint(a) + (angleWeight * angleToPoint(a));
     const float bWeight = distanceToPoint(b) + (angleWeight * angleToPoint(b));
