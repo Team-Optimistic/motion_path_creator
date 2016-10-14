@@ -25,7 +25,7 @@ public:
     // "technically" closest object)
     //
     // Sort in using std::sort in <algorithm> and comparator function objSortComparator
-    // Put sorted list into currentObjectList
+    // Put first element of sorted list into currentObject
   }
 
   void odomCallback(const nav_msgs::Odometry::ConstPtr& in)
