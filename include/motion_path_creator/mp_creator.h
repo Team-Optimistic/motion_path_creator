@@ -4,19 +4,19 @@
 #include <ros/ros.h>
 #include <string>
 
-template <class T>
 class mpCreator
 {
 public:
-  mpCreator(ros::NodeHandle& n, const std::string& topic, const int bufferSize)
+  mpCreator()
   {
-    sub = n.subscribe<T>(topic, bufferSize, &mpCreator::callback, this);
+    sub = n.subscribe<sensor_msgs::PointCloud2>("cloud", 10, &mpCreator::callback, this);
   }
 
   void callback(const sensor_msgs::PointCloud2::ConstPtr& in)
   {
-    
+
   }
 
+  ros::NodeHandle n;
   ros::Subscriber sub;
 };
