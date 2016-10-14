@@ -1,11 +1,9 @@
-#pragma once
-
 #include <sensor_msgs/PointCloud2.h>
 
 class mpCreator
 {
 public:
-  mpCreator();
+  mpCreator(){};
 
-  void callback(const sensor_msgs::PointCloud2& in);
+  void callback(const sensor_msgs::PointCloud2::ConstPtr& in);
 };

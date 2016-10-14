@@ -7,12 +7,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  roscpp
   sensor_msgs
+  pcl_conversions
+  pcl_ros
 )
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -100,7 +102,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+ INCLUDE_DIRS include
 #  LIBRARIES motion_path_creator
 #  CATKIN_DEPENDS sensor_msgs
 #  DEPENDS system_lib
@@ -112,8 +114,8 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include)
 include_directories(
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -128,7 +130,9 @@ include_directories(
 # add_dependencies(motion_path_creator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(motion_path_creator src/mp_creator.cpp src/pathCreator.cpp)
+add_executable(motion_path_creator
+  src/mp_creator.cpp
+  src/pathCreator.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
