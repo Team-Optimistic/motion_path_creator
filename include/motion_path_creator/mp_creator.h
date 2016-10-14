@@ -25,6 +25,7 @@ public:
     // "technically" closest object)
     //
     // Sort in using std::sort in <algorithm> and comparator function objSortComparator
+    // Put sorted list into currentObjectList
   }
 
   void odomCallback(const nav_msgs::Odometry::ConstPtr& in)
@@ -39,6 +40,8 @@ public:
     yVel = in->twist.twist.linear.y;
   }
 
+  inline const geometry_msgs::Point32& getNextObject() const { return currentObject; }
+
   ros::NodeHandle n;
   ros::Subscriber objSub, odomSub;
 
@@ -46,6 +49,8 @@ public:
 private:
   float x, y, theta;
   float xVel, yVel;
+
+  geometry_msgs::Point32 currentObject;
 
   const float angleWeight = 0.25;
 
