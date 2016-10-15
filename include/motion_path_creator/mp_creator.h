@@ -23,10 +23,9 @@ public:
 
   void objCallback(const sensor_msgs::PointCloud::ConstPtr& in)
   {
-    //The next object we pick up should be the one which is both:
-    // close to us, and
-    // in our direction of movement (no sense in turning around to get the
-    // "technically" closest object)
+    // The next object we pick up should be the one which is both:
+    // close to us and in our direction of movement (no sense in turning around
+    // to get the "technically" closest object because turning is expensive)
     std::vector<geometry_msgs::Point32> objects = in->points;
     std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::objSortComparator, this, std::placeholders::_1, std::placeholders::_2));
     currentObject = objects[0];
@@ -51,11 +50,14 @@ public:
 
   geometry_msgs::Point32 nextObject;
 private:
+  // Current ekf estimate
   float x, y, theta;
   float xVel, yVel;
 
+  // Current object (or next object) to pursue
   geometry_msgs::Point32 currentObject;
 
+  // Conversion factor from angle to distance
   const float angleWeight = 0.25;
 
   inline const float distanceToPoint(const geometry_msgs::Point32& p) const
