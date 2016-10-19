@@ -17,6 +17,7 @@ class mpCreator
 public:
   mpCreator()
   {
+    mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject");
     objSub = n.subscribe<sensor_msgs::PointCloud>("cloud", 10, &mpCreator::objCallback, this);
     odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   }
@@ -28,7 +29,7 @@ public:
     // to get the "technically" closest object because turning is expensive)
     std::vector<geometry_msgs::Point32> objects = in->points;
     std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::objSortComparator, this, std::placeholders::_1, std::placeholders::_2));
-    currentObject = objects[0];
+    mpcPub.publish(objects[0]);
   }
 
   void odomCallback(const nav_msgs::Odometry::ConstPtr& in)
@@ -42,20 +43,14 @@ public:
     xVel = in->twist.twist.linear.x;
     yVel = in->twist.twist.linear.y;
   }
-
-  inline const geometry_msgs::Point32& getNextObject() const { return currentObject; }
-
+private:
   ros::NodeHandle n;
+  ros::Publisher mpcPub;
   ros::Subscriber objSub, odomSub;
 
-  geometry_msgs::Point32 nextObject;
-private:
   // Current ekf estimate
   float x, y, theta;
   float xVel, yVel;
-
-  // Current object (or next object) to pursue
-  geometry_msgs::Point32 currentObject;
 
   // Conversion factor from angle to distance
   const float angleWeight = 0.25;
