@@ -17,7 +17,7 @@ class mpCreator
 public:
   mpCreator()
   {
-    mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject");
+    mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject", 1000);
     objSub = n.subscribe<sensor_msgs::PointCloud>("cloud", 10, &mpCreator::objCallback, this);
     odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   }
