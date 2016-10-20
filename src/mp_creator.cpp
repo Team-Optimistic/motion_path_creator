@@ -9,7 +9,7 @@
 
 mpCreator::mpCreator()
 {
-  mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject");
+  mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject", 1000);
   scanSub = n.subscribe<sensor_msgs::LaserScan>("scan", 1000, &mpCreator::objCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   robotPOSSub = n.subscribe<std_msgs::Empty>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
@@ -100,7 +100,7 @@ bool mpCreator::objSortComparator(const geometry_msgs::Point32& a, const geometr
  */
 bool mpCreator::invObjSortComparator(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const
 {
-  const float aWeight = distanceToPoint(a) + (angleWeight * (180 - invAngleToPoint(a)));
-  const float bWeight = distanceToPoint(b) + (angleWeight * (180 - invAngleToPoint(b)));
+  const float aWeight = distanceToPoint(a) + (angleWeight * (180 - angleToPoint(a)));
+  const float bWeight = distanceToPoint(b) + (angleWeight * (180 - angleToPoint(b)));
   return aWeight <= bWeight;
 }
