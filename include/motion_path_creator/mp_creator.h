@@ -5,8 +5,9 @@
 #include <geometry_msgs/Point32.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/PointCloud.h>
-#include <std_msgs/Empty.h>
 #include <sensor_msgs/LaserScan.h>
+#include <std_msgs/Empty.h>
+#include <laser_geometry/laser_geometry.h>
 
 class mpCreator
 {
