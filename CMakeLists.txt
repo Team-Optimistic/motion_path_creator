@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   sensor_msgs
   laser_geometry
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions

@@ -13,7 +13,7 @@ mpCreator::mpCreator()
   mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject");
   scanSub = n.subscribe<sensor_msgs::LaserScan>("scan", 1000, &mpCreator::objCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
-  robotPOSSub = n.subscribe<void>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
+  robotPOSSub = n.subscribe<std_msgs::Empty>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
 }
 
 /**
@@ -49,7 +49,7 @@ void mpCreator::odomCallback(const nav_msgs::Odometry::ConstPtr& in)
 /**
  * Callback for robotPOS request for closest object behind robot
  */
-void mpCreator::robotPOSCallback()
+void mpCreator::robotPOSCallback(const std_msgs::Empty::ConstPtr& in)
 {
   //Convert interal copy of recent laser scan into point cloud
   sensor_msgs::PointCloud cloud;

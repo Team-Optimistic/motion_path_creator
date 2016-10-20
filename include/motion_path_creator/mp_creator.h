@@ -5,6 +5,7 @@
 #include <geometry_msgs/Point32.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/PointCloud.h>
+#include <std_msgs/Empty.h>
 
 class mpCreator
 {
@@ -24,7 +25,7 @@ public:
   /**
    * Callback for robotPOS request for closest object behind robot
    */
-  void mpCreator::robotPOSCallback(void); //const geometry_msgs::Point32::ConstPtr& in
+  void mpCreator::robotPOSCallback(const std_msgs::Empty::ConstPtr& in); //const geometry_msgs::Point32::ConstPtr& in
 private:
   ros::NodeHandle n;
   ros::Publisher mpcPub;
