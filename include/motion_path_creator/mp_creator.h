@@ -6,6 +6,7 @@
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/PointCloud.h>
 #include <std_msgs/Empty.h>
+#include <sensor_msgs/LaserScan.h>
 
 class mpCreator
 {
