@@ -21,7 +21,7 @@ mpCreator::mpCreator()
 void mpCreator::scanCallback(const sensor_msgs::LaserScan::ConstPtr& in)
 {
   //Convert interal copy of recent laser scan into point cloud
-  projector_.projectLaser(in, cloud);
+  projector_.projectLaser(&in, cloud);
 
   // The next object we pick up should be the one which is both:
   // close to us and in our direction of movement (no sense in turning around
