@@ -38,7 +38,7 @@ private:
 
   // Internal copy of recent laser scan
   sensor_msgs::LaserScan scan;
-  laser_geometry::Projector projector_;
+  laser_geometry::LaserProjection projector_;
 
   // Conversion factor from angle to distance
   const float angleWeight = 0.25;
