@@ -6,14 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  geometry_msgs
-  nav_msgs
-  sensor_msgs
-  laser_geometry
-  std_msgs
-)
+find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs nav_msgs sensor_msgs laser_geometry std_msgs)
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
@@ -58,7 +51,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES xv_11_laser_driver
-#  CATKIN_DEPENDS roscpp sensor_msgs
+   CATKIN_DEPENDS roscpp geometry_msgs nav_msgs sensor_msgs laser_geometry std_msgs
 #  DEPENDS system_lib
 )
 
