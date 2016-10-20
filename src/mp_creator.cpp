@@ -10,7 +10,7 @@
 mpCreator::mpCreator()
 {
   mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject", 1000);
-  scanSub = n.subscribe<sensor_msgs::LaserScan>("scan", 1000, &mpCreator::objCallback, this);
+  scanSub = n.subscribe<sensor_msgs::LaserScan>("scan", 1000, &mpCreator::scanCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   robotPOSSub = n.subscribe<std_msgs::Empty>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
 }
@@ -20,12 +20,13 @@ mpCreator::mpCreator()
 */
 void mpCreator::scanCallback(const sensor_msgs::LaserScan::ConstPtr& in)
 {
-  scan = *in;
+  //Convert interal copy of recent laser scan into point cloud
+  projector_.projectLaser(in, cloud);
 
   // The next object we pick up should be the one which is both:
   // close to us and in our direction of movement (no sense in turning around
   // to get the "technically" closest object because turning is expensive)
-  std::vector<geometry_msgs::Point32> objects = in->points;
+  std::vector<geometry_msgs::Point32> objects = cloud.points;
   std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::objSortComparator, this, std::placeholders::_1, std::placeholders::_2));
   mpcPub.publish(objects[0]);
 }
@@ -50,10 +51,6 @@ void mpCreator::odomCallback(const nav_msgs::Odometry::ConstPtr& in)
  */
 void mpCreator::robotPOSCallback(const std_msgs::Empty::ConstPtr& in)
 {
-  //Convert interal copy of recent laser scan into point cloud
-  sensor_msgs::PointCloud cloud;
-  projector_.projectLaser(*scan, cloud);
-
   std::vector<geometry_msgs::Point32> objects = cloud.points;
   std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::invObjSortComparator, this, std::placeholders::_1, std::placeholders::_2));
   mpcPub.publish(objects[0]);

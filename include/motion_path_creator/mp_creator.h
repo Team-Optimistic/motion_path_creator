@@ -37,8 +37,8 @@ private:
   float x, y, theta;
   float xVel, yVel;
 
-  // Internal copy of recent laser scan
-  sensor_msgs::LaserScan scan;
+  // Internal copy of recent point cloud
+  sensor_msgs::PointCloud cloud;
   laser_geometry::LaserProjection projector_;
 
   // Conversion factor from angle to distance
