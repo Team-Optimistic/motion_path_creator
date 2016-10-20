@@ -26,7 +26,7 @@ public:
   /**
    * Callback for robotPOS request for closest object behind robot
    */
-  void mpCreator::robotPOSCallback(const std_msgs::Empty::ConstPtr& in); //const geometry_msgs::Point32::ConstPtr& in
+  void robotPOSCallback(const std_msgs::Empty::ConstPtr& in); //const geometry_msgs::Point32::ConstPtr& in
 private:
   ros::NodeHandle n;
   ros::Publisher mpcPub;
