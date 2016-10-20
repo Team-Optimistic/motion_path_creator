@@ -4,7 +4,6 @@
 #include <iterator>
 #include <functional>
 #include <vector>
-#include <laser_geometry/laser_geometry.h>
 
 #include "motion_path_creator/mp_creator.h"
 
