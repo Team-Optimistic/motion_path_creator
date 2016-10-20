@@ -4,6 +4,7 @@
 #include <iterator>
 #include <functional>
 #include <vector>
+#include <laser_geometry/laser_geometry.h>
 
 #include "mp_creator.h"
 
@@ -12,14 +13,16 @@ mpCreator::mpCreator()
   mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject");
   scanSub = n.subscribe<sensor_msgs::LaserScan>("scan", 1000, &mpCreator::objCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
-  robotPOSSub = n.subscribe<void>("robotPOS/pickedUpObject", 1000, &mpCreator::robotPOSCallback, this);
+  robotPOSSub = n.subscribe<void>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
 }
 
 /**
 * Callback for a new lidar scan from xv_11
 */
-void mpCreator::scanCallback(const sensor_msgs::PointCloud::ConstPtr& in)
+void mpCreator::scanCallback(const sensor_msgs::LaserScan::ConstPtr& in)
 {
+  scan = *in;
+
   // The next object we pick up should be the one which is both:
   // close to us and in our direction of movement (no sense in turning around
   // to get the "technically" closest object because turning is expensive)
@@ -48,7 +51,13 @@ void mpCreator::odomCallback(const nav_msgs::Odometry::ConstPtr& in)
  */
 void mpCreator::robotPOSCallback()
 {
+  //Convert interal copy of recent laser scan into point cloud
+  sensor_msgs::PointCloud cloud;
+  projector_.projectLaser(*scan, cloud);
 
+  std::vector<geometry_msgs::Point32> objects = cloud.points;
+  std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::invObjSortComparator, this, std::placeholders::_1, std::placeholders::_2));
+  mpcPub.publish(objects[0]);
 }
 
 /**
@@ -81,5 +90,18 @@ bool mpCreator::objSortComparator(const geometry_msgs::Point32& a, const geometr
 {
   const float aWeight = distanceToPoint(a) + (angleWeight * angleToPoint(a));
   const float bWeight = distanceToPoint(b) + (angleWeight * angleToPoint(b));
+  return aWeight <= bWeight;
+}
+
+/**
+ * std::sort comparator function, returns whichever point has less cost
+ * @param  a Point a
+ * @param  b Point b
+ * @return   Point with less cost
+ */
+bool mpCreator::invObjSortComparator(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const
+{
+  const float aWeight = distanceToPoint(a) + (angleWeight * (180 - invAngleToPoint(a)));
+  const float bWeight = distanceToPoint(b) + (angleWeight * (180 - invAngleToPoint(b)));
   return aWeight <= bWeight;
 }

@@ -14,7 +14,7 @@ public:
   /**
   * Callback for a new lidar scan from xv_11
   */
-  void scanCallback(const sensor_msgs::PointCloud::ConstPtr& in);
+  void scanCallback(const sensor_msgs::LaserScan::ConstPtr& in);
 
   /**
    * Callback for ekf position estimate
@@ -34,10 +34,15 @@ private:
   float x, y, theta;
   float xVel, yVel;
 
+  // Internal copy of recent laser scan
+  sensor_msgs::LaserScan scan;
+  laser_geometry::Projector projector_;
+
   // Conversion factor from angle to distance
   const float angleWeight = 0.25;
 
   inline const float distanceToPoint(const geometry_msgs::Point32& p) const;
   inline const float angleToPoint(const geometry_msgs::Point32& p) const;
   bool objSortComparator(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;
+  bool invObjSortComparator(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;
 };
