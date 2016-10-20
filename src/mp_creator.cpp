@@ -6,7 +6,7 @@
 #include <vector>
 #include <laser_geometry/laser_geometry.h>
 
-#include "mp_creator.h"
+#include "motion_path_creator/mp_creator.h"
 
 mpCreator::mpCreator()
 {
