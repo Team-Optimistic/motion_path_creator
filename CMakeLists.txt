@@ -9,7 +9,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   geometry_msgs
-  nav_msgs)
+  nav_msgs
+  sensor_msgs)
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
@@ -77,6 +78,7 @@ include_directories(
 ## Declare a cpp executable
 # add_executable(xv_11_laser_driver_node src/xv_11_laser_driver_node.cpp)
 add_executable(motion_path_creator
+  src/mp_creator.cpp
 	src/pathCreator.cpp
 )
 ## Add cmake target dependencies of the executable/library
