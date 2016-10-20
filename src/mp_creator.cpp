@@ -7,7 +7,12 @@
 
 #include "motion_path_creator/mp_creator.h"
 
-mpCreator::mpCreator()
+mpCreator::mpCreator():
+  x(0),
+  y(0),
+  theta(0),
+  xVel(0),
+  yVel(0)
 {
   mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject", 1000);
   scanSub = n.subscribe<sensor_msgs::LaserScan>("scan", 1000, &mpCreator::scanCallback, this);
