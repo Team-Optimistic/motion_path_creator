@@ -31,6 +31,7 @@ public:
 private:
   ros::NodeHandle n;
   ros::Publisher mpcPub;
+  ros::Subscriber scanSub, odomSub, robotPOSSub;
 
   // Current ekf estimate
   float x, y, theta;
