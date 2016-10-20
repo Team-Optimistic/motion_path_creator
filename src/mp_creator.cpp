@@ -15,7 +15,7 @@ mpCreator::mpCreator():
   yVel(0)
 {
   mpcPub = n.advertise<geometry_msgs::Point32>("mpc/nextObject", 1000);
-  scanSub = n.subscribe<sensor_msgs::LaserScan>("scan", 1000, &mpCreator::scanCallback, this);
+  scanSub = n.subscribe<sensor_msgs::LaserScan>("xv/scan", 1000, &mpCreator::scanCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   robotPOSSub = n.subscribe<std_msgs::Empty>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
 }
