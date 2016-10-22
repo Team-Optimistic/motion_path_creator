@@ -80,14 +80,14 @@ void mpCreator::scanCallback(const sensor_msgs::LaserScan::ConstPtr& in)
     zones[(int)(round(angleToPoint(p, corner) / 5.0))].push_back(p);
   }
 
-  for (auto&& v : zones)
-  {
-    std::cout << "V:" << std::endl;
-    for (auto&& p : v)
-    {
-      std::cout << "P:" << p.x << "," << p.y << ";" << std::endl;
-     }
-  }
+  // for (auto&& v : zones)
+  // {
+  //   std::cout << "V:" << std::endl;
+  //   for (auto&& p : v)
+  //   {
+  //     std::cout << "P:" << p.x << "," << p.y << ";" << std::endl;
+  //    }
+  // }
 
   //Sort each list by radius
   for (auto&& v : zones)
@@ -95,14 +95,14 @@ void mpCreator::scanCallback(const sensor_msgs::LaserScan::ConstPtr& in)
     std::sort(std::begin(v), std::end(v), std::bind(&mpCreator::sortByDistance, this, corner, std::placeholders::_2));
   }
 
-  for (auto&& v : zones)
-  {
-    std::cout << "V:" << std::endl;
-    for (auto&& p : v)
-    {
-      std::cout << "P:" << p.x << "," << p.y << ";" << std::endl;
-     }
-  }
+  // for (auto&& v : zones)
+  // {
+  //   std::cout << "V:" << std::endl;
+  //   for (auto&& p : v)
+  //   {
+  //     std::cout << "P:" << p.x << "," << p.y << ";" << std::endl;
+  //    }
+  // }
 
   // Add a start mode that has a path for the first few that works its way there
   // and then switch modes. Also build in a chaining functionality so stars
