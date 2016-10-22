@@ -8,9 +8,9 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "motion_path_creator");
   mpCreator mpc;
 
-  //while (ros::ok())
+  while (ros::ok())
   {
-    mpc.johnAlgorithm();
+    ros::spinOnce();
   }
 
   return 0;

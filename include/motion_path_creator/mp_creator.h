@@ -5,6 +5,7 @@
 #include <geometry_msgs/Point32.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Empty.h>
 #include <laser_geometry/laser_geometry.h>
@@ -29,10 +30,9 @@ public:
    * Callback for robotPOS request for closest object behind robot
    */
   void robotPOSCallback(const std_msgs::Empty::ConstPtr& in);
-  void johnAlgorithm();
 private:
   ros::NodeHandle n;
-  ros::Publisher mpcPub, temp;
+  ros::Publisher mpcPub;
   ros::Subscriber scanSub, odomSub, robotPOSSub;
   tf::TransformBroadcaster br;
   tf::Transform transform;
@@ -61,6 +61,4 @@ private:
 
   bool sortByAngle(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;
   bool sortByDistance(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;
-
-
 };
