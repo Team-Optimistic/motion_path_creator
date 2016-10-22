@@ -6,9 +6,12 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "motion_path_creator");
-  mpCreator mpc();
+  mpCreator mpc;
 
-  ros::spin();
+  //while (ros::ok())
+  {
+    mpc.johnAlgorithm();
+  }
 
   return 0;
 }

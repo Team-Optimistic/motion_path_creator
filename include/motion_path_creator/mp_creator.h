@@ -8,6 +8,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Empty.h>
 #include <laser_geometry/laser_geometry.h>
+#include <tf/transform_broadcaster.h>
 
 class mpCreator
 {
@@ -28,10 +29,13 @@ public:
    * Callback for robotPOS request for closest object behind robot
    */
   void robotPOSCallback(const std_msgs::Empty::ConstPtr& in);
+  void johnAlgorithm();
 private:
   ros::NodeHandle n;
-  ros::Publisher mpcPub;
+  ros::Publisher mpcPub, temp;
   ros::Subscriber scanSub, odomSub, robotPOSSub;
+  tf::TransformBroadcaster br;
+  tf::Transform transform;
 
   // Current ekf estimate
   float x, y, theta;
@@ -45,7 +49,18 @@ private:
   const float angleWeight = 0.25;
 
   inline const float distanceToPoint(const geometry_msgs::Point32& p) const;
+  inline const float distanceToPoint(const geometry_msgs::Point32& p, const geometry_msgs::Point32& from) const;
+
   inline const float angleToPoint(const geometry_msgs::Point32& p) const;
+  inline const float angleToPoint(const geometry_msgs::Point32& p, const geometry_msgs::Point32& from) const;
+
+  inline const float getCost(const geometry_msgs::Point32& p, int angleOffset  = 0) const;
+
   bool objSortComparator(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;
   bool invObjSortComparator(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;
+
+  bool sortByAngle(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;
+  bool sortByDistance(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;
+
+
 };
