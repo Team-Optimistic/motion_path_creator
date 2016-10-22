@@ -48,6 +48,9 @@ private:
   // Conversion factor from angle to distance
   const float angleWeight = 0.25;
 
+  //PI
+  constexpr float PI_F = 3.14159265358979f;
+
   inline const float distanceToPoint(const geometry_msgs::Point32& p) const;
   inline const float distanceToPoint(const geometry_msgs::Point32& p, const geometry_msgs::Point32& from) const;
 

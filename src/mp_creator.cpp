@@ -1,5 +1,4 @@
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <iterator>
 #include <functional>
@@ -77,7 +76,7 @@ void mpCreator::scanCallback(const sensor_msgs::LaserScan::ConstPtr& in)
 
   for (auto&& p : objects)
   {
-    zones[(int)(round(angleToPoint(p, corner) / 5.0))].push_back(p);
+    zones[(int)(std::round(angleToPoint(p, corner) / 5.0))].push_back(p);
   }
 
   // for (auto&& v : zones)
@@ -200,7 +199,7 @@ inline const float mpCreator::angleToPoint(const geometry_msgs::Point32& p) cons
  */
 inline const float mpCreator::angleToPoint(const geometry_msgs::Point32& p, const geometry_msgs::Point32& from) const
 {
-  return (atan2(p.y - from.y, p.x - from.x) * (180.0 / M_PI)) - theta;
+  return (atan2(p.y - from.y, p.x - from.x) * (180.0 / PI_F)) - theta;
 }
 
 /**
