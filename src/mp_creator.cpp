@@ -15,7 +15,7 @@ mpCreator::mpCreator():
   yVel(0)
 {
   mpcPub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObject", 1000);
-  scanSub = n.subscribe<sensor_msgs::LaserScan>("xv/scan", 1000, &mpCreator::scanCallback, this);
+  objectSub = n.subscribe<sensor_msgs::PointCloud2>("objectList", 1000, &mpCreator::objectCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   robotPOSSub = n.subscribe<std_msgs::Empty>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
 
@@ -50,68 +50,77 @@ mpCreator::mpCreator():
 }
 
 /**
-* Callback for a new lidar scan from xv_11
+* Callback for a new field scan
 */
-void mpCreator::scanCallback(const sensor_msgs::LaserScan::ConstPtr& in)
+void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
 {
   //Convert interal copy of recent laser scan into point cloud
-  projector_.projectLaser(*in, cloud);
+  sensor_msgs::convertPointCloud2ToPointCloud(*in, cloud);
 
-  // Find the items from a corner alongside the wall in polar coordinates. Then
-  // sort the items by the theta angle then by radius.  All the items along the
-  // wall are gotten immediately from one end to the other and then the robot
-  // will work its way around the edge.  You could add in a filter to at first
-  // skip stars that don't have a neighbor with a certain radius, and then
-  // include them later. That should give a fast path that should decrease the
-  // driving needed.
+  //RYAN ALGORITHM
 
   std::vector<geometry_msgs::Point32> objects = cloud.points;
+  std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::sortByCost, this, std::placeholders::_1, std::placeholders::_2));
 
-  geometry_msgs::Point32 corner;
-  corner.x = 0;
-  corner.y = 0;
+  //---------------------------------------------------------------------------
 
-  //Split objects into sections by theta
-  std::vector<std::vector<geometry_msgs::Point32>> zones(36);
+  //JOHN ALGORITHM
 
-  for (auto&& p : objects)
-  {
-    zones[(int)(std::round(angleToPoint(p, corner) / 5.0))].push_back(p);
-  }
-
+  // // Find the items from a corner alongside the wall in polar coordinates. Then
+  // // sort the items by the theta angle then by radius.  All the items along the
+  // // wall are gotten immediately from one end to the other and then the robot
+  // // will work its way around the edge.  You could add in a filter to at first
+  // // skip stars that don't have a neighbor with a certain radius, and then
+  // // include them later. That should give a fast path that should decrease the
+  // // driving needed.
+  //
+  // std::vector<geometry_msgs::Point32> objects = cloud.points;
+  //
+  // geometry_msgs::Point32 corner;
+  // corner.x = 0;
+  // corner.y = 0;
+  //
+  // //Split objects into sections by theta
+  // std::vector<std::vector<geometry_msgs::Point32>> zones(36);
+  //
+  // for (auto&& p : objects)
+  // {
+  //   zones[(int)(std::round(angleToPoint(p, corner) / 5.0))].push_back(p);
+  // }
+  //
+  // // for (auto&& v : zones)
+  // // {
+  // //   std::cout << "V:" << std::endl;
+  // //   for (auto&& p : v)
+  // //   {
+  // //     std::cout << "P:" << p.x << "," << p.y << ";" << std::endl;
+  // //    }
+  // // }
+  //
+  // //Sort each list by radius
   // for (auto&& v : zones)
   // {
-  //   std::cout << "V:" << std::endl;
-  //   for (auto&& p : v)
-  //   {
-  //     std::cout << "P:" << p.x << "," << p.y << ";" << std::endl;
-  //    }
+  //   std::sort(std::begin(v), std::end(v), std::bind(&mpCreator::sortByDistance, this, corner, std::placeholders::_2));
   // }
-
-  //Sort each list by radius
-  for (auto&& v : zones)
-  {
-    std::sort(std::begin(v), std::end(v), std::bind(&mpCreator::sortByDistance, this, corner, std::placeholders::_2));
-  }
-
-  // for (auto&& v : zones)
-  // {
-  //   std::cout << "V:" << std::endl;
-  //   for (auto&& p : v)
-  //   {
-  //     std::cout << "P:" << p.x << "," << p.y << ";" << std::endl;
-  //    }
-  // }
-
-  // Add a start mode that has a path for the first few that works its way there
-  // and then switch modes. Also build in a chaining functionality so stars
-  // within x inches are automatically considered priority targets. That way the
-  // robot will get into a cluster or line and work along it.
-  // Build it in a layered fsm:
-    // Driving/Sensing
-    // Get Adjacent Stars
-    // Move to Adjacent Star
-    // Move to Next Best Star (sorted on field)
+  //
+  // // for (auto&& v : zones)
+  // // {
+  // //   std::cout << "V:" << std::endl;
+  // //   for (auto&& p : v)
+  // //   {
+  // //     std::cout << "P:" << p.x << "," << p.y << ";" << std::endl;
+  // //    }
+  // // }
+  //
+  // // Add a start mode that has a path for the first few that works its way there
+  // // and then switch modes. Also build in a chaining functionality so stars
+  // // within x inches are automatically considered priority targets. That way the
+  // // robot will get into a cluster or line and work along it.
+  // // Build it in a layered fsm:
+  //   // Driving/Sensing
+  //   // Get Adjacent Stars
+  //   // Move to Adjacent Star
+  //   // Move to Next Best Star (sorted on field)
 
   static int seq = 0;
   sensor_msgs::PointCloud objCloud;
@@ -150,7 +159,7 @@ void mpCreator::odomCallback(const nav_msgs::Odometry::ConstPtr& in)
 void mpCreator::robotPOSCallback(const std_msgs::Empty::ConstPtr& in)
 {
   std::vector<geometry_msgs::Point32> objects = cloud.points;
-  std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::invObjSortComparator, this, std::placeholders::_1, std::placeholders::_2));
+  std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::sortByCost_Behind, this, std::placeholders::_1, std::placeholders::_2));
   mpcPub.publish(objects[0]);
 }
 
@@ -219,7 +228,7 @@ inline const float mpCreator::getCost(const geometry_msgs::Point32& p, int angle
  * @param  b Point b
  * @return   Point with less cost
  */
-bool mpCreator::objSortComparator(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const
+bool mpCreator::sortByCost(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const
 {
   return getCost(a) <= getCost(b);
 }
@@ -230,7 +239,7 @@ bool mpCreator::objSortComparator(const geometry_msgs::Point32& a, const geometr
  * @param  b Point b
  * @return   Point with less cost
  */
-bool mpCreator::invObjSortComparator(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const
+bool mpCreator::sortByCost_Behind(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const
 {
   return getCost(a, 180) <= getCost(b, 180);
 }
