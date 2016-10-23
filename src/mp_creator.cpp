@@ -14,7 +14,7 @@ mpCreator::mpCreator():
   xVel(0),
   yVel(0)
 {
-  mpcPub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObject", 1000);
+  mpcPub = n.advertise<sensor_msgs::PointCloud2>("nextObjects", 1000);
   objectSub = n.subscribe<sensor_msgs::PointCloud2>("objectList", 1000, &mpCreator::objectCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   robotPOSSub = n.subscribe<std_msgs::Empty>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
