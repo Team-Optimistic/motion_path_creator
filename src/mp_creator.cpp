@@ -17,7 +17,7 @@ mpCreator::mpCreator():
   mpcPub = n.advertise<sensor_msgs::PointCloud2>("nextObjects", 1000);
   objectSub = n.subscribe<sensor_msgs::PointCloud2>("objectList", 1000, &mpCreator::objectCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
-  robotPOSSub = n.subscribe<std_msgs::Empty>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
+  robotPOSSub = n.subscribe<std_msgs::Empty>("spcRequest", 1000, &mpCreator::robotPOSCallback, this);
 
   #ifdef MPC_USE_FAKE_TRANSFORM
     geometry_msgs::Point32 a;
