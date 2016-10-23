@@ -7,7 +7,9 @@
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <std_msgs/Empty.h>
-#include <tf/transform_broadcaster.h>
+#ifdef MPC_USE_FAKE_TRANSFORM
+  #include <tf/transform_broadcaster.h>
+#endif
 
 class mpCreator
 {
@@ -32,8 +34,11 @@ private:
   ros::NodeHandle n;
   ros::Publisher mpcPub;
   ros::Subscriber objectSub, odomSub, robotPOSSub;
-  tf::TransformBroadcaster br;
-  tf::Transform transform;
+
+  #ifdef MPC_USE_FAKE_TRANSFORM
+    tf::TransformBroadcaster br;
+    tf::Transform transform;
+  #endif
 
   // Current ekf estimate
   float x, y, theta;

@@ -19,34 +19,36 @@ mpCreator::mpCreator():
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   robotPOSSub = n.subscribe<std_msgs::Empty>("robotPOS/spcRequest", 1000, &mpCreator::robotPOSCallback, this);
 
-  geometry_msgs::Point32 a;
-  a.x = 1;
-  a.y = 6;
+  #ifdef MPC_USE_FAKE_TRANSFORM
+    geometry_msgs::Point32 a;
+    a.x = 1;
+    a.y = 6;
 
-  geometry_msgs::Point32 b;
-  b.x = 4;
-  b.y = 7;
+    geometry_msgs::Point32 b;
+    b.x = 4;
+    b.y = 7;
 
-  geometry_msgs::Point32 c;
-  c.x = 5;
-  c.y = 6;
+    geometry_msgs::Point32 c;
+    c.x = 5;
+    c.y = 6;
 
-  geometry_msgs::Point32 d;
-  d.x = 7;
-  d.y = 3;
+    geometry_msgs::Point32 d;
+    d.x = 7;
+    d.y = 3;
 
-  geometry_msgs::Point32 e;
-  e.x = 8;
-  e.y = 4;
+    geometry_msgs::Point32 e;
+    e.x = 8;
+    e.y = 4;
 
-  std::vector<geometry_msgs::Point32> points;
-  points.push_back(a);
-  points.push_back(b);
-  points.push_back(c);
-  points.push_back(e);
-  points.push_back(d);
+    std::vector<geometry_msgs::Point32> points;
+    points.push_back(a);
+    points.push_back(b);
+    points.push_back(c);
+    points.push_back(e);
+    points.push_back(d);
 
-  cloud.points = points;
+    cloud.points = points;
+  #endif
 }
 
 /**
@@ -61,6 +63,12 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
 
   std::vector<geometry_msgs::Point32> objects = cloud.points;
   std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::sortByCost, this, std::placeholders::_1, std::placeholders::_2));
+
+  sensor_msgs::PointCloud cloudSorted;
+  cloudSorted.points = objects;
+  sensor_msgs::PointCloud2 out;
+  sensor_msgs::convertPointCloudToPointCloud2(cloudSorted, out);
+  mpcPub.publish(out);
 
   //---------------------------------------------------------------------------
 
@@ -121,21 +129,24 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   //   // Get Adjacent Stars
   //   // Move to Adjacent Star
   //   // Move to Next Best Star (sorted on field)
+  //
+  // sensor_msgs::PointCloud2 out;
+  // sensor_msgs::convertPointCloudToPointCloud2(objCloud, out);
+  // mpcPub.publish(out);
 
-  static int seq = 0;
-  sensor_msgs::PointCloud objCloud;
-  objCloud.points = objects;
-  objCloud.header.seq = seq++;
-  objCloud.header.stamp = ros::Time::now();
-  objCloud.header.frame_id = "/world";
+  // Fake transform for rviz
+  #ifdef MPC_USE_FAKE_TRANSFORM
+    static int seq = 0;
+    sensor_msgs::PointCloud objCloud;
+    objCloud.points = objects;
+    objCloud.header.seq = seq++;
+    objCloud.header.stamp = ros::Time::now();
+    objCloud.header.frame_id = "/world";
 
-  transform.setRotation(tf::Quaternion(0,0,0,1));
-  transform.setOrigin(tf::Vector3(0,0,0));
-  br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/world", "myFrame"));
-
-  sensor_msgs::PointCloud2 out;
-  sensor_msgs::convertPointCloudToPointCloud2(objCloud, out);
-  mpcPub.publish(out);
+    transform.setRotation(tf::Quaternion(0,0,0,1));
+    transform.setOrigin(tf::Vector3(0,0,0));
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "/world", "myFrame"));
+  #endif
 }
 
 /**
