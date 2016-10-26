@@ -67,6 +67,7 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   //are enough of them to only go after them
   const int objectLimit = 4, intakeLength = 18;
   int rightCounter = 0, leftCounter = 0, southCounter = 0;
+  bool shouldSort = true; //Don't sort if we're using objects on the wall
   for (auto&& p : cloud.points)
   {
     //Check if object is too close to the right wall
@@ -96,14 +97,20 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
     if (rightCounter >= objectLimit)
     {
       objects = rightWallObjects;
+      shouldSort = false;
+      break;
     }
     else if (leftCounter >= objectLimit)
     {
       objects = leftWallObjects;
+      shouldSort = false;
+      break;
     }
     else if (southCounter >= objectLimit)
     {
       objects = southWallObjects;
+      shouldSort = false;
+      break;
     }
     else
     {
@@ -112,7 +119,10 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   }
 
   //Sort objects by relative cost
-  std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::sortByCost, this, std::placeholders::_1, std::placeholders::_2));
+  if (shouldSort)
+  {
+    std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::sortByCost, this, std::placeholders::_1, std::placeholders::_2));
+  }
 
   //Convert objects into a point cloud and publish
   sensor_msgs::PointCloud cloudSorted;
