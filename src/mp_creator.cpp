@@ -61,9 +61,60 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
 
   //RYAN ALGORITHM
 
-  std::vector<geometry_msgs::Point32> objects = cloud.points;
+  std::vector<geometry_msgs::Point32> objects, rightWallObjects, leftWallObjects, southWallObjects;
+
+  //Only consider objects that aren't too close to the field wall, unless there
+  //are enough of them to only go after them
+  const int objectLimit = 4, intakeLength = 18;
+  int rightCounter = 0, leftCounter = 0, southCounter = 0;
+  for (auto&& p : cloud.points)
+  {
+    //Check if object is too close to the right wall
+    if (p.x >= 144 - intakeLength)
+    {
+      rightWallObjects.push_back(p);
+      rightCounter++;
+    }
+    //Check if boject is too close to the left wall
+    else if (p.x <= intakeLength)
+    {
+      leftWallObjects.push_back(p);
+      leftCounter++;
+    }
+    //Check if the object is too close to the south wall
+    else if (p.y <= intakeLength)
+    {
+      southWallObjects.push_back(p);
+      southCounter++;
+    }
+    else
+    {
+      objects.push_back(p);
+    }
+
+    //Use whichever wall has the objects
+    if (rightCounter >= objectLimit)
+    {
+      objects = rightWallObjects;
+    }
+    else if (leftCounter >= objectLimit)
+    {
+      objects = leftWallObjects;
+    }
+    else if (southCounter >= objectLimit)
+    {
+      objects = southWallObjects;
+    }
+    else
+    {
+      objects.push_back(p);
+    }
+  }
+
+  //Sort objects by relative cost
   std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::sortByCost, this, std::placeholders::_1, std::placeholders::_2));
 
+  //Convert objects into a point cloud and publish
   sensor_msgs::PointCloud cloudSorted;
   cloudSorted.points = objects;
   sensor_msgs::PointCloud2 out;
