@@ -59,7 +59,7 @@ private:
   inline const float angleToPoint(const geometry_msgs::Point32& p) const;
   inline const float angleToPoint(const geometry_msgs::Point32& p, const geometry_msgs::Point32& from) const;
 
-  inline const float getCost(const geometry_msgs::Point32& p, int angleOffset  = 0) const;
+  inline const float getCost(const geometry_msgs::Point32& p, int angleOffset = 0) const;
 
   bool sortByCost(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;
   bool sortByCost_Behind(const geometry_msgs::Point32& a, const geometry_msgs::Point32& b) const;

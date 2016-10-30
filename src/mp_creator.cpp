@@ -60,73 +60,81 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   sensor_msgs::convertPointCloud2ToPointCloud(*in, cloud);
 
   //RYAN ALGORITHM
+  const int listCount = 5;
+  std::vector<geometry_msgs::Point32> lists[listCount];
+  lists[0] = std::vector<geometry_msgs::Point32>();
+  lists[2] = std::vector<geometry_msgs::Point32>();
+  lists[1] = std::vector<geometry_msgs::Point32>();
+  lists[3] = std::vector<geometry_msgs::Point32>();
+  lists[4] = std::vector<geometry_msgs::Point32>();
 
-  std::vector<geometry_msgs::Point32> objects, rightWallObjects, leftWallObjects, southWallObjects;
+  const int objects = 0, rightWallObjects = 1, leftWallObjects = 2, southWallObjects = 3, fenceObjects = 4;
 
   //Only consider objects that aren't too close to the field wall, unless there
   //are enough of them to only go after them
   const int objectLimit = 4, intakeLength = 18;
-  int rightCounter = 0, leftCounter = 0, southCounter = 0;
+  int rightCounter = 0, leftCounter = 0, southCounter = 0, fenceCounter = 0;
   bool shouldSort = true; //Don't sort if we're using objects on the wall
+
   for (auto&& p : cloud.points)
   {
     //Check if object is too close to the right wall
     if (p.x >= 144 - intakeLength)
     {
-      rightWallObjects.push_back(p);
+      lists[rightWallObjects].push_back(p);
       rightCounter++;
     }
     //Check if boject is too close to the left wall
     else if (p.x <= intakeLength)
     {
-      leftWallObjects.push_back(p);
+      lists[leftWallObjects].push_back(p);
       leftCounter++;
     }
     //Check if the object is too close to the south wall
     else if (p.y <= intakeLength)
     {
-      southWallObjects.push_back(p);
+      lists[southWallObjects].push_back(p);
       southCounter++;
     }
-    else
+    //Check if the object is too close to the fence
+    else if (p.y >= 72 - intakeLength)
     {
-      objects.push_back(p);
-    }
-
-    //Use whichever wall has the objects
-    if (rightCounter >= objectLimit)
-    {
-      objects = rightWallObjects;
-      shouldSort = false;
-      break;
-    }
-    else if (leftCounter >= objectLimit)
-    {
-      objects = leftWallObjects;
-      shouldSort = false;
-      break;
-    }
-    else if (southCounter >= objectLimit)
-    {
-      objects = southWallObjects;
-      shouldSort = false;
-      break;
+      lists[fenceObjects].push_back(p);
+      fenceCounter++;
     }
     else
     {
-      objects.push_back(p);
+      lists[objects].push_back(p);
     }
   }
 
   //Sort objects by relative cost
-  if (shouldSort)
+  int lowestCost = 0, lowestCostIndex = 0, temp = 0;
+
+  //Iterate over each list
+  for (int i = 0; i < listCount; i++)
   {
-    std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::sortByCost, this, std::placeholders::_1, std::placeholders::_2));
+    //Sort list by cost
+    std::sort(std::begin(lists[i]), std::end(lists[i]), std::bind(&mpCreator::sortByCost, this, std::placeholders::_1, std::placeholders::_2));
+
+    //Get cost of list
+    temp = 0;
+    for (auto&& p : lists[i])
+    {
+      temp += getCost(p);
+    }
+
+    //Save list if it has lowest cost yet
+    if (temp < lowestCost)
+    {
+      lowestCost = temp;
+      lowestCostIndex = i;
+    }
   }
 
-  //Convert objects into a point cloud and publish
+  //Publish cheapest list
   sensor_msgs::PointCloud cloudSorted;
-  cloudSorted.points = objects;
+  cloudSorted.points = lists[lowestCostIndex];
   sensor_msgs::PointCloud2 out;
   sensor_msgs::convertPointCloudToPointCloud2(cloudSorted, out);
   mpcPub.publish(out);
