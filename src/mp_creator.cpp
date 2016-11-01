@@ -60,19 +60,21 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   sensor_msgs::convertPointCloud2ToPointCloud(*in, cloud);
 
   //RYAN ALGORITHM
-  const int listCount = 5;
+  const int listCount = 5; //Number of lists: one for the center and each wall
   std::vector<geometry_msgs::Point32> lists[listCount];
-  lists[0] = std::vector<geometry_msgs::Point32>();
-  lists[2] = std::vector<geometry_msgs::Point32>();
-  lists[1] = std::vector<geometry_msgs::Point32>();
-  lists[3] = std::vector<geometry_msgs::Point32>();
-  lists[4] = std::vector<geometry_msgs::Point32>();
 
+  //Initialize lists
+  for (int i = 0; i < listCount; i++)
+  {
+    lists[i] = std::vector<geometry_msgs::Point32>();
+  }
+
+  //Index of each list in lists
   const int objects = 0, rightWallObjects = 1, leftWallObjects = 2, southWallObjects = 3, fenceObjects = 4;
 
   //Only consider objects that aren't too close to the field wall, unless there
   //are enough of them to only go after them
-  const int objectLimit = 4, intakeLength = 18;
+  const int intakeLength = 18;
   int rightCounter = 0, leftCounter = 0, southCounter = 0, fenceCounter = 0;
   bool shouldSort = true; //Don't sort if we're using objects on the wall
 
@@ -109,7 +111,9 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   }
 
   //Sort objects by relative cost
-  int lowestCost = 0, lowestCostIndex = 0, temp = 0;
+  int lowestCost = -1, lowestCostIndex = 0;
+  int lowestCostBackup = -1, lowestCostIndexBackup = 0;
+  int temp = 0;
 
   //Iterate over each list
   for (int i = 0; i < listCount; i++)
@@ -125,7 +129,14 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
     }
 
     //Save list if it has lowest cost yet
-    if (temp < lowestCost)
+    //Save list into backups if it doesn't have enough objects
+    if (lists[i].size() < 3 && temp < lowestCostBackup)
+    {
+      lowestCostBackup = temp;
+      lowestCostIndexBackup = i;
+    }
+    //If size is fine, save into priority
+    else if (temp < lowestCost)
     {
       lowestCost = temp;
       lowestCostIndex = i;
@@ -134,7 +145,24 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
 
   //Publish cheapest list
   sensor_msgs::PointCloud cloudSorted;
-  cloudSorted.points = lists[lowestCostIndex];
+
+  //If there are no priority lists, use backup list
+  if (lowestCost == -1)
+  {
+    cloudSorted.points = lists[lowestCostIndexBackup];
+  }
+  else if (lowestCostBackup == -1)
+  {
+    cloudSorted.points = lists[lowestCostIndex];
+  }
+  //If there are no lists at all, publish nothing
+  else
+  {
+    cloudSorted.points = std::vector<geometry_msgs::Point32>();
+    std::cout << "MPC: No objects to get" << std::endl;
+  }
+
+  //Convert into PointCloud2
   sensor_msgs::PointCloud2 out;
   sensor_msgs::convertPointCloudToPointCloud2(cloudSorted, out);
   mpcPub.publish(out);
