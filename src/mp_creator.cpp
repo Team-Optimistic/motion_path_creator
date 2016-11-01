@@ -4,6 +4,7 @@
 #include <functional>
 #include <vector>
 #include <sensor_msgs/point_cloud_conversion.h>
+#include <limits>
 
 #include "motion_path_creator/mp_creator.h"
 
@@ -111,8 +112,9 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   }
 
   //Sort objects by relative cost
-  int lowestCost = -1, lowestCostIndex = 0;
-  int lowestCostBackup = -1, lowestCostIndexBackup = 0;
+  //Start lowest cost as a big number that won't happen normally (0xCCCCCCC)
+  int lowestCost = 214748364, lowestCostIndex = 0;
+  int lowestCostBackup = 214748364, lowestCostIndexBackup = 0;
   int temp = 0;
 
   //Iterate over each list
@@ -147,11 +149,11 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   sensor_msgs::PointCloud cloudSorted;
 
   //If there are no priority lists, use backup list
-  if (lowestCost == -1)
+  if (lowestCost == 214748364)
   {
     cloudSorted.points = lists[lowestCostIndexBackup];
   }
-  else if (lowestCostBackup == -1)
+  else if (lowestCostBackup == 214748364)
   {
     cloudSorted.points = lists[lowestCostIndex];
   }
