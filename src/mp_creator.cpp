@@ -19,7 +19,7 @@ mpCreator::mpCreator():
   objectSub = n.subscribe<sensor_msgs::PointCloud2>("objectList", 1000, &mpCreator::objectCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   robotPOSSub = n.subscribe<std_msgs::Empty>("spcRequest", 1000, &mpCreator::robotPOSCallback, this);
-  moveToPointSub = n.subscribe<geometry_msgs::Point32>("moveToPoint", 1000, &mpCreator::moveToPointCallback, this);
+  moveToPointSub = n.subscribe<geometry_msgs::PoseStamped>("move_base_simple/goal", 1000, &mpCreator::moveToPointCallback, this);
 
   #ifdef MPC_USE_FAKE_TRANSFORM
     geometry_msgs::Point32 a;
@@ -275,9 +275,22 @@ void mpCreator::robotPOSCallback(const std_msgs::Empty::ConstPtr& in)
   mpcPub.publish(objects[0]);
 }
 
-void mpCreator::moveToPointCallback(const geometry_msgs::Point32::ConstPtr& in)
+void mpCreator::moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& in)
 {
-  mpcPub.publish(in);
+  sensor_msgs::PointCloud out;
+
+  std::vector<geometry_msgs::Point32> outVector(1);
+  geometry_msgs::Point32 outPoint;
+  outPoint.x = in->pose.position.x;
+  outPoint.y = in->pose.position.y;
+  outPoint.z = 0;
+  outVector[0] = outPoint;
+  out.points = outVector;
+
+  sensor_msgs::PointCloud2 outFinal;
+  sensor_msgs::convertPointCloudToPointCloud2(out, outFinal);
+
+  mpcPub.publish(outFinal);
 }
 
 /**

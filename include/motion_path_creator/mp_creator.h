@@ -3,6 +3,7 @@
 #include <ros/ros.h>
 #include <string>
 #include <geometry_msgs/Point32.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -34,7 +35,7 @@ public:
   /**
    * Callback for moving to a point
    */
-  void moveToPointCallback(const geometry_msgs::Point32::ConstPtr& in);
+  void moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& in);
 private:
   ros::NodeHandle n;
   ros::Publisher mpcPub;
