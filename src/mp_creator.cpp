@@ -290,6 +290,8 @@ void mpCreator::moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& 
   sensor_msgs::PointCloud2 outFinal;
   sensor_msgs::convertPointCloudToPointCloud2(out, outFinal);
 
+  ROS_INFO("moving to nav goal (%1.2f,%1.2f)", outPoint.x, outPoint.y);
+
   mpcPub.publish(outFinal);
 }
 
