@@ -19,6 +19,7 @@ mpCreator::mpCreator():
   objectSub = n.subscribe<sensor_msgs::PointCloud2>("objectList", 1000, &mpCreator::objectCallback, this);
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   robotPOSSub = n.subscribe<std_msgs::Empty>("spcRequest", 1000, &mpCreator::robotPOSCallback, this);
+  moveToPointSub = n.subscribe<geometry_msgs::Point32>("moveToPoint", 1000, &mpCreator::moveToPointCallback, this);
 
   #ifdef MPC_USE_FAKE_TRANSFORM
     geometry_msgs::Point32 a;
@@ -113,8 +114,9 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
 
   //Sort objects by relative cost
   //Start lowest cost as a big number that won't happen normally (0xCCCCCCC)
-  int lowestCost = 214748364, lowestCostIndex = 0;
-  int lowestCostBackup = 214748364, lowestCostIndexBackup = 0;
+  constexpr int bigNumber = 214748364;
+  int lowestCost = bigNumber, lowestCostIndex = 0;
+  int lowestCostBackup = bigNumber, lowestCostIndexBackup = 0;
   int temp = 0;
 
   //Iterate over each list
@@ -149,11 +151,11 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   sensor_msgs::PointCloud cloudSorted;
 
   //If there are no priority lists, use backup list
-  if (lowestCost == 214748364)
+  if (lowestCost == bigNumber)
   {
     cloudSorted.points = lists[lowestCostIndexBackup];
   }
-  else if (lowestCostBackup == 214748364)
+  else if (lowestCostBackup == bigNumber)
   {
     cloudSorted.points = lists[lowestCostIndex];
   }
@@ -161,7 +163,7 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   else
   {
     cloudSorted.points = std::vector<geometry_msgs::Point32>();
-    std::cout << "MPC: No objects to get" << std::endl;
+    ROS_INFO("No objects to get");
   }
 
   //Convert into PointCloud2
@@ -271,6 +273,11 @@ void mpCreator::robotPOSCallback(const std_msgs::Empty::ConstPtr& in)
   std::vector<geometry_msgs::Point32> objects = cloud.points;
   std::sort(std::begin(objects), std::end(objects), std::bind(&mpCreator::sortByCost_Behind, this, std::placeholders::_1, std::placeholders::_2));
   mpcPub.publish(objects[0]);
+}
+
+void mpCreator::moveToPointCallback(const geometry_msgs::Point32::ConstPtr& in)
+{
+  mpcPub.publish(in);
 }
 
 /**

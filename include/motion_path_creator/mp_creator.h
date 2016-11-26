@@ -30,10 +30,15 @@ public:
    * Callback for robotPOS request for closest object behind robot
    */
   void robotPOSCallback(const std_msgs::Empty::ConstPtr& in);
+
+  /**
+   * Callback for moving to a point
+   */
+  void moveToPointCallback(const geometry_msgs::Point32::ConstPtr& in);
 private:
   ros::NodeHandle n;
   ros::Publisher mpcPub;
-  ros::Subscriber objectSub, odomSub, robotPOSSub;
+  ros::Subscriber objectSub, odomSub, robotPOSSub, moveToPointSub;
 
   #ifdef MPC_USE_FAKE_TRANSFORM
     tf::TransformBroadcaster br;
