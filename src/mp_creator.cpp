@@ -20,6 +20,7 @@ mpCreator::mpCreator():
   odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
   robotPOSSub = n.subscribe<std_msgs::Empty>("spcRequest", 1000, &mpCreator::robotPOSCallback, this);
   moveToPointSub = n.subscribe<geometry_msgs::PoseStamped>("move_base_simple/goal", 1000, &mpCreator::moveToPointCallback, this);
+  customMoveSub = n.subscribe<geometry_msgs::PoseStamped>("customMove", 1000, &mpCreator::customMoveCallback, this);
 
   #ifdef MPC_USE_FAKE_TRANSFORM
     geometry_msgs::Point32 a;
@@ -163,7 +164,7 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   else
   {
     cloudSorted.points = std::vector<geometry_msgs::Point32>();
-    ROS_INFO("No objects to get");
+    ROS_INFO("motion_path_creator: No objects to get");
   }
 
   //Convert into PointCloud2
@@ -283,6 +284,26 @@ void mpCreator::moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& 
   geometry_msgs::Point32 outPoint;
   outPoint.x = in->pose.position.x;
   outPoint.y = in->pose.position.y;
+  outPoint.z = 0;
+  outVector[0] = outPoint;
+  out.points = outVector;
+
+  sensor_msgs::PointCloud2 outFinal;
+  sensor_msgs::convertPointCloudToPointCloud2(out, outFinal);
+
+  ROS_INFO("motion_path_creator: moving to nav goal (%1.2f,%1.2f), type: %d", outPoint.x, outPoint.y, (int)outPoint.z);
+
+  mpcPub.publish(outFinal);
+}
+
+void mpCreator::customMoveCallback(const geometry_msgs::PoseStamped::ConstPtr& in)
+{
+  sensor_msgs::PointCloud out;
+
+  std::vector<geometry_msgs::Point32> outVector(1);
+  geometry_msgs::Point32 outPoint;
+  outPoint.x = in->pose.position.x;
+  outPoint.y = in->pose.position.y;
   outPoint.z = in->pose.position.z;
   outVector[0] = outPoint;
   out.points = outVector;
@@ -290,7 +311,7 @@ void mpCreator::moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& 
   sensor_msgs::PointCloud2 outFinal;
   sensor_msgs::convertPointCloudToPointCloud2(out, outFinal);
 
-  ROS_INFO("moving to nav goal (%1.2f,%1.2f), type: %d", outPoint.x, outPoint.y, (int)outPoint.z);
+  ROS_INFO("motion_path_creator: moving to custom nav goal (%1.2f,%1.2f), type: %d", outPoint.x, outPoint.y, (int)outPoint.z);
 
   mpcPub.publish(outFinal);
 }

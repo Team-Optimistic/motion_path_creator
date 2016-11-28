@@ -36,10 +36,15 @@ public:
    * Callback for moving to a point
    */
   void moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& in);
+
+  /**
+   * Callback for moving to a point in a custom way
+   */
+  void customMoveCallback(const geometry_msgs::PoseStamped::ConstPtr& in);
 private:
   ros::NodeHandle n;
   ros::Publisher mpcPub;
-  ros::Subscriber objectSub, odomSub, robotPOSSub, moveToPointSub;
+  ros::Subscriber objectSub, odomSub, robotPOSSub, moveToPointSub, customMoveSub;
 
   #ifdef MPC_USE_FAKE_TRANSFORM
     tf::TransformBroadcaster br;
