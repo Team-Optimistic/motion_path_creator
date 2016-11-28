@@ -283,14 +283,14 @@ void mpCreator::moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& 
   geometry_msgs::Point32 outPoint;
   outPoint.x = in->pose.position.x;
   outPoint.y = in->pose.position.y;
-  outPoint.z = 0;
+  outPoint.z = in->pose.position.z;
   outVector[0] = outPoint;
   out.points = outVector;
 
   sensor_msgs::PointCloud2 outFinal;
   sensor_msgs::convertPointCloudToPointCloud2(out, outFinal);
 
-  ROS_INFO("moving to nav goal (%1.2f,%1.2f)", outPoint.x, outPoint.y);
+  ROS_INFO("moving to nav goal (%1.2f,%1.2f), type: %d", outPoint.x, outPoint.y, (int)outPoint.z);
 
   mpcPub.publish(outFinal);
 }
