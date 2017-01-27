@@ -164,7 +164,7 @@ void mpCreator::objectCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
   else
   {
     cloudSorted.points = std::vector<geometry_msgs::Point32>();
-    ROS_INFO("motion_path_creator: No objects to get");
+    ROS_INFO("No objects to get");
   }
 
   //Convert into PointCloud2
@@ -291,7 +291,7 @@ void mpCreator::moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& 
   sensor_msgs::PointCloud2 outFinal;
   sensor_msgs::convertPointCloudToPointCloud2(out, outFinal);
 
-  ROS_INFO("motion_path_creator: moving to nav goal (%1.2f,%1.2f), type: %d", outPoint.x, outPoint.y, (int)outPoint.z);
+  ROS_INFO("moving to nav goal (%1.2f,%1.2f), type: %d", outPoint.x, outPoint.y, (int)outPoint.z);
 
   mpcPub.publish(outFinal);
 }
@@ -311,7 +311,7 @@ void mpCreator::customMoveCallback(const geometry_msgs::PoseStamped::ConstPtr& i
   sensor_msgs::PointCloud2 outFinal;
   sensor_msgs::convertPointCloudToPointCloud2(out, outFinal);
 
-  ROS_INFO("motion_path_creator: moving to custom nav goal (%1.2f,%1.2f), type: %d", outPoint.x, outPoint.y, (int)outPoint.z);
+  ROS_INFO("moving to custom nav goal (%1.2f,%1.2f), type: %d", outPoint.x, outPoint.y, (int)outPoint.z);
 
   mpcPub.publish(outFinal);
 }
