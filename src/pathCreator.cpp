@@ -7,6 +7,7 @@
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <algorithm>
 #include <iterator>
+#include <nav_msgs/Path.h>
 
 #include "motion_path_creator/mp_creator.h"
 
@@ -35,7 +36,8 @@ int main(int argc, char **argv)
   static mpCreator mpc;
 
   ros::NodeHandle n;
-  ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObjects", 1000);
+  ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObjects", 1000),
+                 pathPub = n.advertise<nav_msgs::Path>("mpc/path", 1000);
 
   while (ros::ok())
   {
@@ -96,6 +98,23 @@ int main(int argc, char **argv)
 
       publishObjects(3, finalObjList, pub);
     }
+
+    //Generate path
+    nav_msgs::Path path;
+    path.poses.reserve(finalObjList.size());
+    for (int i = 0; i < finalObjList.size(); i++)
+    {
+      path.poses.at(i).pose.position.x = finalObjList.at(i).x;
+      path.poses.at(i).pose.position.y = finalObjList.at(i).y;
+      path.poses.at(i).pose.position.z = 0;
+      path.poses.at(i).pose.orientation.x = 0;
+      path.poses.at(i).pose.orientation.y = 0;
+      path.poses.at(i).pose.orientation.z = 0;
+      path.poses.at(i).pose.orientation.w = 1;
+    }
+
+    //Publish path
+    pathPub.publish(path);
   }
 
   return 0;
