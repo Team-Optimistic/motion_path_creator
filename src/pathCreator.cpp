@@ -47,36 +47,44 @@ int main(int argc, char **argv)
     geometry_msgs::Point32 coords = mpc.getCoords();
 
     //Add small objects
+    ROS_INFO("mpc: adding small objs\n");
     for (auto&& obj : mpc.getSmallObjs().points)
       objList.push_back(obj);
 
     //Add big objects
+    ROS_INFO("mpc: adding big objs\n");
     for (auto&& obj : mpc.getBigObjs().points)
       objList.push_back(obj);
 
     //Publish if we find a big object first
     if ((*objList.begin()).z == ObjTypes::big)
     {
+	    ROS_INFO("mpc: found big first\n");
       publishObjects(1, objList, pub);
     }
     //Else, we need to keep computing
     else
     {
+    	ROS_INFO("mpc: need to keep looking\n");
       finalObjList.push_back(*objList.begin());
       coords = *objList.begin();
       objList.erase(objList.begin());
+      ROS_INFO("mpc: added obj\n");
 
       //Loop until we have enough objects
       for (int objCount = 1; objCount <= 3;)
       {
+      	ROS_INFO("mpc: looping\n");
         //If there are no objects left, publish what we have
         if (objList.size() == 0)
         {
+        	ROS_INFO("mpc: no objs left\n");
           publishObjects(objCount, finalObjList, pub);
           break;
         }
 
         //Recalculate costs with new position
+        ROS_INFO("mpc: recalculating\n");
         std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
           return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
         });
@@ -84,22 +92,26 @@ int main(int argc, char **argv)
         //Add cheapest element to final list and remove it from overall list
         finalObjList.push_back(*objList.begin());
         objCount++; //We just added a new object so increment
+        ROS_INFO("mpc: added obj 2\n");
 
         //If we have a small object followed by a big object
         if (objCount == 2 && (*objList.begin()).z == ObjTypes::big)
         {
+        	ROS_INFO("mpc: found big and small\n");
           publishObjects(2, finalObjList, pub);
           break;
         }
 
         coords = *objList.begin(); //Move robot to that object's positoin
         objList.erase(objList.begin()); //Remove object from list so we don't consider it again
+        ROS_INFO("mpc: removed obj\n");
       }
 
       publishObjects(3, finalObjList, pub);
     }
 
     //Generate path
+    ROS_INFO("mpc: generating path\n");
     nav_msgs::Path path;
     path.poses.reserve(finalObjList.size());
     for (int i = 0; i < finalObjList.size(); i++)
@@ -112,6 +124,7 @@ int main(int argc, char **argv)
       path.poses.at(i).pose.orientation.z = 0;
       path.poses.at(i).pose.orientation.w = 1;
     }
+    ROS_INFO("mpc: path made\n");
 
     //Publish path
     pathPub.publish(path);
