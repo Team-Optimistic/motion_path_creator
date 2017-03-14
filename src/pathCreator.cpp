@@ -10,6 +10,7 @@
 
 #include "motion_path_creator/mp_creator.h"
 
+//Prototypes
 inline const float distanceToPoint(const geometry_msgs::Point32& from, const geometry_msgs::Point32& to);
 inline const float angleToPoint(const geometry_msgs::Point32& from, const geometry_msgs::Point32& to);
 inline const float getTypeCost(const geometry_msgs::Point32& obj);
@@ -17,6 +18,16 @@ inline const float getCost(const geometry_msgs::Point32& robot, const geometry_m
 bool sortByCost(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& obj1, const float obj1Cost, const geometry_msgs::Point32& obj2, const float obj2Cost);
 bool sortByDistance(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& obj1, const float obj1Cost, const geometry_msgs::Point32& obj2, const float obj2Cost);
 bool sortByAngle(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& obj1, const float obj1Cost, const geometry_msgs::Point32& obj2, const float obj2Cost);
+void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32> objs, const ros::Publisher pub);
+
+struct ObjTypes
+{
+  enum types
+  {
+    small = 1,
+    big = 2
+  };
+};
 
 int main(int argc, char **argv)
 {
@@ -30,7 +41,8 @@ int main(int argc, char **argv)
   {
     ros::spinOnce(); //Callbacks
 
-    std::vector<geometry_msgs::Point32> objList;
+    std::vector<geometry_msgs::Point32> objList, finalObjList;
+    geometry_msgs::Point32 coords = mpc.getCoords();
 
     //Add small objects
     for (auto&& obj : mpc.getSmallObjs().points)
@@ -40,20 +52,69 @@ int main(int argc, char **argv)
     for (auto&& obj : mpc.getBigObjs().points)
       objList.push_back(obj);
 
-    //Sort by cost
-    std::sort(objList.begin(), objList.end(), [](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
-      return sortByCost(mpc.getCoords(), a, getTypeCost(a), b, getTypeCost(b));
-    });
+    //Publish if we find a big object first
+    if ((*objList.begin()).z == ObjTypes::big)
+    {
+      publishObjects(1, objList, pub);
+    }
+    //Else, we need to keep computing
+    else
+    {
+      finalObjList.push_back(*objList.begin());
+      coords = *objList.begin();
+      objList.erase(objList.begin());
 
-    //Convert objList to PointCloud2
-    sensor_msgs::PointCloud2 out;
-    sensor_msgs::PointCloud temp;
-    std::copy(objList.begin(), objList.end(), std::begin(temp.points));
-    sensor_msgs::convertPointCloudToPointCloud2(temp, out);
-    pub.publish(out);
+      //Loop until we have enough objects
+      for (int objCount = 1; objCount <= 3;)
+      {
+        //If there are no objects left, publish what we have
+        if (objList.size() == 0)
+        {
+          publishObjects(objCount, finalObjList, pub);
+          break;
+        }
+
+        //Recalculate costs with new position
+        std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
+          return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
+        });
+
+        //Add cheapest element to final list and remove it from overall list
+        finalObjList.push_back(*objList.begin());
+        objCount++; //We just added a new object so increment
+
+        //If we have a small object followed by a big object
+        if (objCount == 2 && (*objList.begin()).z == ObjTypes::big)
+        {
+          publishObjects(2, finalObjList, pub);
+          break;
+        }
+
+        coords = *objList.begin(); //Move robot to that object's positoin
+        objList.erase(objList.begin()); //Remove object from list so we don't consider it again
+      }
+
+      publishObjects(3, finalObjList, pub);
+    }
   }
 
   return 0;
+}
+
+/**
+ * Publishes a number of objects
+ * @param numObjs Number of objects to publish
+ * @param objs    Object vector to read from
+ * @param pub     Publisher to publish with
+ */
+void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32> objs, const ros::Publisher pub)
+{
+  //Convert objList to PointCloud2
+  sensor_msgs::PointCloud2 out;
+  sensor_msgs::PointCloud temp;
+  std::copy(objs.begin(), objs.begin() + numObjs, std::begin(temp.points));
+  sensor_msgs::convertPointCloudToPointCloud2(temp, out);
+  pub.publish(out);
 }
 
 /**
@@ -89,10 +150,10 @@ inline const float getTypeCost(const geometry_msgs::Point32& obj)
 
   switch (int(obj.z))
   {
-    case 1:
+    case ObjTypes::small:
       return smallObjectCost;
 
-    case 2:
+    case ObjTypes::big:
       return bigObjectCost;
 
     default:
