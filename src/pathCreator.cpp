@@ -36,8 +36,8 @@ int main(int argc, char **argv)
   static mpCreator mpc;
 
   ros::NodeHandle n;
-  ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObjects", 1000),
-                 pathPub = n.advertise<nav_msgs::Path>("mpc/path", 1000);
+  ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObjects", 10),
+                 pathPub = n.advertise<nav_msgs::Path>("mpc/path", 10);
 
   while (ros::ok())
   {

@@ -10,12 +10,12 @@
 
 mpCreator::mpCreator()
 {
-  mpcPub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObjects", 1000);
-  smallObjsSub = n.subscribe<sensor_msgs::PointCloud2>("goat/small_objects", 1000, &mpCreator::smallObjsCallback, this);
-  bigObjsSub = n.subscribe<sensor_msgs::PointCloud2>("goat/big_objects", 1000, &mpCreator::bigObjsCallback, this);
-  odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 1000, &mpCreator::odomCallback, this);
-  moveToPointSub = n.subscribe<geometry_msgs::PoseStamped>("move_base_simple/goal", 1000, &mpCreator::moveToPointCallback, this);
-  customMoveSub = n.subscribe<geometry_msgs::PoseStamped>("customMove", 1000, &mpCreator::customMoveCallback, this);
+  mpcPub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObjects", 10);
+  smallObjsSub = n.subscribe<sensor_msgs::PointCloud2>("goat/small_objects", 10, &mpCreator::smallObjsCallback, this);
+  bigObjsSub = n.subscribe<sensor_msgs::PointCloud2>("goat/big_objects", 10, &mpCreator::bigObjsCallback, this);
+  odomSub = n.subscribe<nav_msgs::Odometry>("odometry/filtered", 10, &mpCreator::odomCallback, this);
+  moveToPointSub = n.subscribe<geometry_msgs::PoseStamped>("move_base_simple/goal", 10, &mpCreator::moveToPointCallback, this);
+  customMoveSub = n.subscribe<geometry_msgs::PoseStamped>("customMove", 10, &mpCreator::customMoveCallback, this);
 
   coords.x = coords.y = coords.z = 0;
 }
