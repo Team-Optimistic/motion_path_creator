@@ -56,7 +56,8 @@ int main(int argc, char **argv)
     if(objList.size() != 0)
     {
       std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
-
+      return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
+        });
     //Publish if we find a big object first
       if ((objList.front()).z == ObjTypes::big)
       {
