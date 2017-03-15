@@ -144,10 +144,8 @@ return 0;
   sensor_msgs::PointCloud temp;
   temp.points.reserve(numObjs);
   std::copy(objs.begin(), objs.begin() + numObjs, temp.points.begin());
-  ROS_INFO("mpc: copied");
   sensor_msgs::convertPointCloudToPointCloud2(temp, out);
   pub.publish(out);
-  ROS_INFO("mpc: published\n");
 
 }
 
