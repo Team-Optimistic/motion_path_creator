@@ -71,7 +71,8 @@ int main(int argc, char **argv)
        ROS_INFO("mpc: added obj\n");
 
       //Loop until we have enough objects
-       for (int objCount = 1; objCount <= 3;)
+       int objCount;
+       for (objCount = 1; objCount <= 3;)
        {
          ROS_INFO("mpc: looping\n");
         //If there are no objects left, publish what we have
@@ -105,8 +106,8 @@ int main(int argc, char **argv)
         objList.erase(objList.begin()); //Remove object from list so we don't consider it again
         ROS_INFO("mpc: removed obj\n");
       }
-
-      publishObjects(3, finalObjList, pub);
+      if(objCount ==3)
+        publishObjects(3, finalObjList, pub);
     }
   }
 
@@ -114,8 +115,11 @@ int main(int argc, char **argv)
   ROS_INFO("mpc: generating path\n");
   nav_msgs::Path path;
   path.poses.reserve(finalObjList.size());
+  ROS_INFO("mpc: list size %d\n",finalObjList.size());
   for (int i = 0; i < finalObjList.size(); i++)
   {
+    ROS_INFO("mpc: i value %d\n",i);
+
     path.poses.at(i).pose.position.x = finalObjList.at(i).x;
     path.poses.at(i).pose.position.y = finalObjList.at(i).y;
     path.poses.at(i).pose.position.z = 0;
