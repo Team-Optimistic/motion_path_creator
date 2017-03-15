@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
       //Loop until we have enough objects
        int objCount;
-       for (objCount = 1; objCount <= 3;)
+       for (objCount = 1; objCount < 3;)
        {
         //If there are no objects left, publish what we have
          if (objList.size() == 0)
