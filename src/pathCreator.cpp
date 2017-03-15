@@ -119,14 +119,18 @@ int main(int argc, char **argv)
   for (int i = 0; i < finalObjList.size(); i++)
   {
     ROS_INFO("mpc: i value %d\n",i);
+    geometry_msgs::PoseStamped pose;
+    pose.header.stamp = ros::Time();
+    pose.header.frame_id = "/field"
 
-    path.poses.at(i).pose.position.x = finalObjList.at(i).x;
-    path.poses.at(i).pose.position.y = finalObjList.at(i).y;
-    path.poses.at(i).pose.position.z = 0;
-    path.poses.at(i).pose.orientation.x = 0;
-    path.poses.at(i).pose.orientation.y = 0;
-    path.poses.at(i).pose.orientation.z = 0;
-    path.poses.at(i).pose.orientation.w = 1;
+    pose.pose.position.x = finalObjList.at(i).x;
+    pose.pose.position.y = finalObjList.at(i).y;
+    pose.pose.position.z = 0;
+    pose.pose.orientation.x = 0;
+    pose.pose.orientation.y = 0;
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
+    path.poses.push_back(pose);
   }
   ROS_INFO("mpc: path made\n");
 
