@@ -114,6 +114,8 @@ int main(int argc, char **argv)
     //Generate path
   ROS_INFO("mpc: generating path\n");
   nav_msgs::Path path;
+  path.header.stamp = ros::Time();
+  path.header.frame_id = "/field";
   path.poses.reserve(finalObjList.size());
   ROS_INFO("mpc: list size %d\n",finalObjList.size());
   for (int i = 0; i < finalObjList.size(); i++)
