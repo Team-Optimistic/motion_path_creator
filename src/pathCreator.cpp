@@ -138,8 +138,6 @@ return 0;
  void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32> objs, const ros::Publisher pub)
  {
   //Convert objList to PointCloud2
-  ROS_INFO("mpc: publishing \n");
-
   sensor_msgs::PointCloud2 out;
   sensor_msgs::PointCloud temp;
   temp.points.reserve(numObjs);
