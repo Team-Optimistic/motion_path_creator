@@ -5,6 +5,8 @@
 #include <vector>
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <limits>
+#include <tf/tf.h>
+
 
 #include "motion_path_creator/mp_creator.h"
 
@@ -45,9 +47,7 @@ void mpCreator::odomCallback(const nav_msgs::Odometry::ConstPtr& in)
 {
   coords.x = in->pose.pose.position.x;
   coords.y = in->pose.pose.position.y;
-  const geometry_msgs::Quaternion quat = in->pose.pose.orientation;
-  coords.z = atan2((2 * ((quat.x * quat.w) + (quat.y * quat.z))),
-                  ((quat.x * quat.x) + (quat.y * quat.y) - (quat.z * quat.z) - (quat.w * quat.w)));
+  coords.z = tf::getYaw(in->pose.pose.orientation);
 }
 
 void mpCreator::moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& in)

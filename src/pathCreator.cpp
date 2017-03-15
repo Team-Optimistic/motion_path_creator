@@ -7,6 +7,7 @@
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <algorithm>
 #include <iterator>
+#include <tf/tf.h>
 #include <nav_msgs/Path.h>
 
 #include "motion_path_creator/mp_creator.h"
@@ -52,10 +53,7 @@ int main(int argc, char **argv)
     pose.pose.position.x = coords.x;
     pose.pose.position.y = coords.y;
     pose.pose.position.z = 0;
-    pose.pose.orientation.x = 0;
-    pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 0;
-    pose.pose.orientation.w = 1;
+    pose.pose.orientation = tf::createQuaternionMsgFromYaw(coords.z);
 
 
     //Add small objects
@@ -79,21 +77,23 @@ int main(int argc, char **argv)
       std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
         return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
       });
-
-        //Add cheapest element to final list and remove it from overall list
+      float oldZ = objList.front().z;
+      objList.front().z = angleToPoint(coords,objList.front()); //save angle
+      //Add cheapest element to final list and remove it from overall list
       finalObjList.push_back(objList.front());
       objCount++; //We just added a new object so increment
 
-        //If we have a big object
-      if ((objList.front()).z == ObjTypes::big)
+      //If we have a big object
+      if (oldZ == ObjTypes::big)
       {
         break;
       }
+      //ROS_INFO("angle: %d", objList.;
 
-      coords = objList.front(); //Move robot to that object's positoin
+      coords = objList.front(); //Move robot to that object's position
       objList.erase(objList.begin()); //Remove object from list so we don't consider it again
     }
-    
+
     if(finalObjList.size() > 0)
       publishObjects(objCount, finalObjList, pub);
 
@@ -110,10 +110,7 @@ int main(int argc, char **argv)
       pose.pose.position.x = finalObjList.at(i).x;
       pose.pose.position.y = finalObjList.at(i).y;
       pose.pose.position.z = 0;
-      pose.pose.orientation.x = 0;
-      pose.pose.orientation.y = 0;
-      pose.pose.orientation.z = 0;
-      pose.pose.orientation.w = 1;
+      pose.pose.orientation = tf::createQuaternionMsgFromYaw(finalObjList.at(i).z);
       path.poses.push_back(pose);
     }
     //Publish path
@@ -151,7 +148,7 @@ int main(int argc, char **argv)
  */
  inline const float distanceToPoint(const geometry_msgs::Point32& from, const geometry_msgs::Point32& to)
  {
-  return sqrt(pow(to.x - from.x, 2) * pow(to.y - from.y, 2));
+  return sqrt(pow(to.x - from.x, 2) + pow(to.y - from.y, 2));
 }
 
 /**
@@ -162,7 +159,7 @@ int main(int argc, char **argv)
  */
  inline const float angleToPoint(const geometry_msgs::Point32& from, const geometry_msgs::Point32& to)
  {
-  return atan2(to.y - from.y, to.x - from.x) * (180.0 / M_PI);
+  return atan2(to.y - from.y, to.x - from.x);
 }
 
 /**
@@ -197,7 +194,12 @@ int main(int argc, char **argv)
  inline const float getCost(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& object, const float objectCost)
  {
   constexpr float moveCost = 1, turnCost = 2;
-  return (distanceToPoint(robot, object) * moveCost + (angleToPoint(robot, object) - robot.z) * turnCost) * objectCost;
+  float turnDistance =(angleToPoint(robot, object) - robot.z) * (180.0 / M_PI);
+  turnDistance = turnDistance > 180 ? turnDistance - 360 : turnDistance;
+  turnDistance = turnDistance < -180 ? turnDistance + 360 : turnDistance;
+  turnDistance = turnDistance < 0 ? turnDistance * -1 : turnDistance;
+  float straightDistance = distanceToPoint(robot, object);
+  return (straightDistance * moveCost + turnDistance * turnCost) * objectCost;
 }
 
 /**
