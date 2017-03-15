@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
   ros::NodeHandle n;
   ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObjects", 10),
-                 pathPub = n.advertise<nav_msgs::Path>("mpc/path", 10);
+  pathPub = n.advertise<nav_msgs::Path>("mpc/path", 10);
 
   while (ros::ok())
   {
@@ -56,41 +56,43 @@ int main(int argc, char **argv)
     for (auto&& obj : mpc.getBigObjs().points)
       objList.push_back(obj);
     ROS_INFO("mpc: size %d",objList.size());
+    if(objList.size() != 0)
+    {
     //Publish if we find a big object first
-    if ((objList.front()).z == ObjTypes::big)
-    {
-	    ROS_INFO("mpc: found big first\n");
-      publishObjects(1, objList, pub);
-    }
+      if ((objList.front()).z == ObjTypes::big)
+      {
+       ROS_INFO("mpc: found big first\n");
+       publishObjects(1, objList, pub);
+     }
     //Else, we need to keep computing
-    else
-    {
-    	ROS_INFO("mpc: need to keep looking\n");
-      finalObjList.push_back(objList.front());
-      coords = objList.front();
-      objList.erase(objList.begin());
-      ROS_INFO("mpc: added obj\n");
+     else
+     {
+       ROS_INFO("mpc: need to keep looking\n");
+       finalObjList.push_back(objList.front());
+       coords = objList.front();
+       objList.erase(objList.begin());
+       ROS_INFO("mpc: added obj\n");
 
       //Loop until we have enough objects
-      for (int objCount = 1; objCount <= 3;)
-      {
-      	ROS_INFO("mpc: looping\n");
+       for (int objCount = 1; objCount <= 3;)
+       {
+         ROS_INFO("mpc: looping\n");
         //If there are no objects left, publish what we have
-        if (objList.size() == 0)
-        {
-        	ROS_INFO("mpc: no objs left\n");
-          publishObjects(objCount, finalObjList, pub);
-          break;
-        }
+         if (objList.size() == 0)
+         {
+           ROS_INFO("mpc: no objs left\n");
+           publishObjects(objCount, finalObjList, pub);
+           break;
+         }
 
         //Recalculate costs with new position
-        ROS_INFO("mpc: recalculating\n");
-        std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
+         ROS_INFO("mpc: recalculating\n");
+         std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
           return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
         });
 
         //Add cheapest element to final list and remove it from overall list
-        finalObjList.push_back(objList.front());
+         finalObjList.push_back(objList.front());
         objCount++; //We just added a new object so increment
         ROS_INFO("mpc: added obj 2\n");
 
@@ -109,28 +111,29 @@ int main(int argc, char **argv)
 
       publishObjects(3, finalObjList, pub);
     }
-
-    //Generate path
-    ROS_INFO("mpc: generating path\n");
-    nav_msgs::Path path;
-    path.poses.reserve(finalObjList.size());
-    for (int i = 0; i < finalObjList.size(); i++)
-    {
-      path.poses.at(i).pose.position.x = finalObjList.at(i).x;
-      path.poses.at(i).pose.position.y = finalObjList.at(i).y;
-      path.poses.at(i).pose.position.z = 0;
-      path.poses.at(i).pose.orientation.x = 0;
-      path.poses.at(i).pose.orientation.y = 0;
-      path.poses.at(i).pose.orientation.z = 0;
-      path.poses.at(i).pose.orientation.w = 1;
-    }
-    ROS_INFO("mpc: path made\n");
-
-    //Publish path
-    pathPub.publish(path);
   }
 
-  return 0;
+    //Generate path
+  ROS_INFO("mpc: generating path\n");
+  nav_msgs::Path path;
+  path.poses.reserve(finalObjList.size());
+  for (int i = 0; i < finalObjList.size(); i++)
+  {
+    path.poses.at(i).pose.position.x = finalObjList.at(i).x;
+    path.poses.at(i).pose.position.y = finalObjList.at(i).y;
+    path.poses.at(i).pose.position.z = 0;
+    path.poses.at(i).pose.orientation.x = 0;
+    path.poses.at(i).pose.orientation.y = 0;
+    path.poses.at(i).pose.orientation.z = 0;
+    path.poses.at(i).pose.orientation.w = 1;
+  }
+  ROS_INFO("mpc: path made\n");
+
+    //Publish path
+  pathPub.publish(path);
+}
+
+return 0;
 }
 
 /**
@@ -139,8 +142,8 @@ int main(int argc, char **argv)
  * @param objs    Object vector to read from
  * @param pub     Publisher to publish with
  */
-void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32> objs, const ros::Publisher pub)
-{
+ void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32> objs, const ros::Publisher pub)
+ {
   //Convert objList to PointCloud2
   sensor_msgs::PointCloud2 out;
   sensor_msgs::PointCloud temp;
@@ -155,8 +158,8 @@ void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32>
  * @param  to   The point to measure to (point 2)
  * @return      The distance between the points
  */
-inline const float distanceToPoint(const geometry_msgs::Point32& from, const geometry_msgs::Point32& to)
-{
+ inline const float distanceToPoint(const geometry_msgs::Point32& from, const geometry_msgs::Point32& to)
+ {
   return sqrt(pow(to.x - from.x, 2) * pow(to.y - from.y, 2));
 }
 
@@ -166,8 +169,8 @@ inline const float distanceToPoint(const geometry_msgs::Point32& from, const geo
  * @param  to   The point to measure to (point 2)
  * @return      The angle between the points
  */
-inline const float angleToPoint(const geometry_msgs::Point32& from, const geometry_msgs::Point32& to)
-{
+ inline const float angleToPoint(const geometry_msgs::Point32& from, const geometry_msgs::Point32& to)
+ {
   return atan2(to.y - from.y, to.x - from.x) * (180.0 / M_PI);
 }
 
@@ -176,20 +179,20 @@ inline const float angleToPoint(const geometry_msgs::Point32& from, const geomet
  * @param  obj Object to use
  * @return     Type cost of object
  */
-inline const float getTypeCost(const geometry_msgs::Point32& obj)
-{
+ inline const float getTypeCost(const geometry_msgs::Point32& obj)
+ {
   constexpr float smallObjectCost = 1/1.5, bigObjectCost = 1/4;
 
   switch (int(obj.z))
   {
     case ObjTypes::small:
-      return smallObjectCost;
+    return smallObjectCost;
 
     case ObjTypes::big:
-      return bigObjectCost;
+    return bigObjectCost;
 
     default:
-      return std::numeric_limits<int>::max();
+    return std::numeric_limits<int>::max();
   }
 }
 
@@ -200,8 +203,8 @@ inline const float getTypeCost(const geometry_msgs::Point32& obj)
  * @param  objectCost The cost of the object type
  * @return            The cost of the object
  */
-inline const float getCost(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& object, const float objectCost)
-{
+ inline const float getCost(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& object, const float objectCost)
+ {
   constexpr float moveCost = 1, turnCost = 2;
   return (distanceToPoint(robot, object) * moveCost + (angleToPoint(robot, object) - robot.z) * turnCost) * objectCost;
 }
@@ -215,8 +218,8 @@ inline const float getCost(const geometry_msgs::Point32& robot, const geometry_m
  * @param  obj2Cost Cost of second object's type
  * @return          Whether the first object has lower cost than the second
  */
-bool sortByCost(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& obj1, const float obj1Cost, const geometry_msgs::Point32& obj2, const float obj2Cost)
-{
+ bool sortByCost(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& obj1, const float obj1Cost, const geometry_msgs::Point32& obj2, const float obj2Cost)
+ {
   return getCost(robot, obj1, obj1Cost) <= getCost(robot, obj2, obj2Cost);
 }
 
@@ -229,8 +232,8 @@ bool sortByCost(const geometry_msgs::Point32& robot, const geometry_msgs::Point3
  * @param  obj2Cost Cost of second object's type
  * @return          Whether the first object is closer than the second
  */
-bool sortByDistance(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& obj1, const float obj1Cost, const geometry_msgs::Point32& obj2, const float obj2Cost)
-{
+ bool sortByDistance(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& obj1, const float obj1Cost, const geometry_msgs::Point32& obj2, const float obj2Cost)
+ {
   return distanceToPoint(robot, obj1) <= distanceToPoint(robot, obj2);
 }
 
@@ -243,7 +246,7 @@ bool sortByDistance(const geometry_msgs::Point32& robot, const geometry_msgs::Po
  * @param  obj2Cost Cost of second object's type
  * @return          Whether the first object is closer than the second
  */
-bool sortByAngle(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& obj1, const float obj1Cost, const geometry_msgs::Point32& obj2, const float obj2Cost)
-{
+ bool sortByAngle(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& obj1, const float obj1Cost, const geometry_msgs::Point32& obj2, const float obj2Cost)
+ {
   return angleToPoint(robot, obj1) <= angleToPoint(robot, obj2);
 }
