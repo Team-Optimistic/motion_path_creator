@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     ROS_INFO("mpc: adding big objs\n");
     for (auto&& obj : mpc.getBigObjs().points)
       objList.push_back(obj);
-    ROS_INFO("mpc: size %d",objList.size())
+    ROS_INFO("mpc: size %d",objList.size());
     //Publish if we find a big object first
     if ((objList.front()).z == ObjTypes::big)
     {
