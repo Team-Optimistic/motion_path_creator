@@ -47,15 +47,12 @@ int main(int argc, char **argv)
     geometry_msgs::Point32 coords = mpc.getCoords();
 
     //Add small objects
-    ROS_INFO("mpc: adding small objs\n");
     for (auto&& obj : mpc.getSmallObjs().points)
       objList.push_back(obj);
 
     //Add big objects
-    ROS_INFO("mpc: adding big objs\n");
     for (auto&& obj : mpc.getBigObjs().points)
       objList.push_back(obj);
-    ROS_INFO("mpc: size %d",objList.size());
     if(objList.size() != 0)
     {
     //Publish if we find a big object first
@@ -92,7 +89,7 @@ int main(int argc, char **argv)
         });
 
         //Add cheapest element to final list and remove it from overall list
-         finalObjList.push_back(objList.front());
+        finalObjList.push_back(objList.front());
         objCount++; //We just added a new object so increment
         ROS_INFO("mpc: added obj 2\n");
 
@@ -145,11 +142,16 @@ return 0;
  void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32> objs, const ros::Publisher pub)
  {
   //Convert objList to PointCloud2
+  ROS_INFO("mpc: publishing \n");
+
   sensor_msgs::PointCloud2 out;
   sensor_msgs::PointCloud temp;
   std::copy(objs.begin(), objs.begin() + numObjs, std::begin(temp.points));
+  ROS_INFO("mpc: copied");
   sensor_msgs::convertPointCloudToPointCloud2(temp, out);
   pub.publish(out);
+  ROS_INFO("mpc: published\n");
+
 }
 
 /**
