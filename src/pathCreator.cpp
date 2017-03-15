@@ -55,6 +55,8 @@ int main(int argc, char **argv)
       objList.push_back(obj);
     if(objList.size() != 0)
     {
+      std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
+
     //Publish if we find a big object first
       if ((objList.front()).z == ObjTypes::big)
       {
