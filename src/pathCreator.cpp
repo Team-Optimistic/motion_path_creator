@@ -55,9 +55,9 @@ int main(int argc, char **argv)
     ROS_INFO("mpc: adding big objs\n");
     for (auto&& obj : mpc.getBigObjs().points)
       objList.push_back(obj);
-
+    ROS_INFO("mpc: size %d",objList.size())
     //Publish if we find a big object first
-    if ((*objList.begin()).z == ObjTypes::big)
+    if ((objList.front()).z == ObjTypes::big)
     {
 	    ROS_INFO("mpc: found big first\n");
       publishObjects(1, objList, pub);
@@ -66,8 +66,8 @@ int main(int argc, char **argv)
     else
     {
     	ROS_INFO("mpc: need to keep looking\n");
-      finalObjList.push_back(*objList.begin());
-      coords = *objList.begin();
+      finalObjList.push_back(objList.front());
+      coords = objList.front();
       objList.erase(objList.begin());
       ROS_INFO("mpc: added obj\n");
 
@@ -90,19 +90,19 @@ int main(int argc, char **argv)
         });
 
         //Add cheapest element to final list and remove it from overall list
-        finalObjList.push_back(*objList.begin());
+        finalObjList.push_back(objList.front());
         objCount++; //We just added a new object so increment
         ROS_INFO("mpc: added obj 2\n");
 
         //If we have a small object followed by a big object
-        if (objCount == 2 && (*objList.begin()).z == ObjTypes::big)
+        if (objCount == 2 && (objList.front()).z == ObjTypes::big)
         {
         	ROS_INFO("mpc: found big and small\n");
           publishObjects(2, finalObjList, pub);
           break;
         }
 
-        coords = *objList.begin(); //Move robot to that object's positoin
+        coords = objList.front(); //Move robot to that object's positoin
         objList.erase(objList.begin()); //Remove object from list so we don't consider it again
         ROS_INFO("mpc: removed obj\n");
       }
