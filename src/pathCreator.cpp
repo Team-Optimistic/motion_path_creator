@@ -121,8 +121,7 @@ int main(int argc, char **argv)
     ROS_INFO("mpc: i value %d\n",i);
     geometry_msgs::PoseStamped pose;
     pose.header.stamp = ros::Time();
-    pose.header.frame_id = "/field"
-
+    pose.header.frame_id = "/field";
     pose.pose.position.x = finalObjList.at(i).x;
     pose.pose.position.y = finalObjList.at(i).y;
     pose.pose.position.z = 0;
