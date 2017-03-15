@@ -46,6 +46,18 @@ int main(int argc, char **argv)
     std::vector<geometry_msgs::Point32> objList, finalObjList;
     geometry_msgs::Point32 coords = mpc.getCoords();
 
+    geometry_msgs::PoseStamped pose;
+    pose.header.stamp = ros::Time::now();
+    pose.header.frame_id = "/field";
+    pose.pose.position.x = coords.x;
+    pose.pose.position.y = coords.y;
+    pose.pose.position.z = 0;
+    pose.pose.orientation.x = 0;
+    pose.pose.orientation.y = 0;
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
+
+
     //Add small objects
     for (auto&& obj : mpc.getSmallObjs().points)
       objList.push_back(obj);
@@ -53,84 +65,65 @@ int main(int argc, char **argv)
     //Add big objects
     for (auto&& obj : mpc.getBigObjs().points)
       objList.push_back(obj);
-    if(objList.size() != 0)
+
+    //Loop until we have enough objects
+    int objCount = 1;
+    while (objCount <= 3 && objCount < objList.size())
     {
-      std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
-      return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
-        });
-    //Publish if we find a big object first
-      if ((objList.front()).z == ObjTypes::big)
-      {
-       publishObjects(1, objList, pub);
-     }
-    //Else, we need to keep computing
-     else
-     {
-       finalObjList.push_back(objList.front());
-       coords = objList.front();
-       objList.erase(objList.begin());
-
-      //Loop until we have enough objects
-       int objCount;
-       for (objCount = 1; objCount < 3;)
-       {
         //If there are no objects left, publish what we have
-         if (objList.size() == 0)
-         {
-           publishObjects(objCount, finalObjList, pub);
-           break;
-         }
-
+      if (objList.size() == 0)
+      {
+        break;
+      }
         //Recalculate costs with new position
-         std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
-          return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
-        });
+      std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
+        return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
+      });
 
         //Add cheapest element to final list and remove it from overall list
-        finalObjList.push_back(objList.front());
-        objCount++; //We just added a new object so increment
+      finalObjList.push_back(objList.front());
+      objCount++; //We just added a new object so increment
 
-        //If we have a small object followed by a big object
-        if (objCount == 2 && (objList.front()).z == ObjTypes::big)
-        {
-          publishObjects(2, finalObjList, pub);
-          break;
-        }
-
-        coords = objList.front(); //Move robot to that object's positoin
-        objList.erase(objList.begin()); //Remove object from list so we don't consider it again
+        //If we have a big object
+      if ((objList.front()).z == ObjTypes::big)
+      {
+        break;
       }
-      if(objCount ==3)
-        publishObjects(3, finalObjList, pub);
+
+      coords = objList.front(); //Move robot to that object's positoin
+      objList.erase(objList.begin()); //Remove object from list so we don't consider it again
     }
-  }
+    
+    if(finalObjList.size() > 0)
+      publishObjects(objCount, finalObjList, pub);
 
     //Generate path
-  nav_msgs::Path path;
-  path.header.stamp = ros::Time::now();
-  path.header.frame_id = "/field";
-  path.poses.reserve(finalObjList.size());
-  for (int i = 0; i < finalObjList.size(); i++)
-  {
-    geometry_msgs::PoseStamped pose;
-    pose.header.stamp = ros::Time::now();
-    pose.header.frame_id = "/field";
-    pose.pose.position.x = finalObjList.at(i).x;
-    pose.pose.position.y = finalObjList.at(i).y;
-    pose.pose.position.z = 0;
-    pose.pose.orientation.x = 0;
-    pose.pose.orientation.y = 0;
-    pose.pose.orientation.z = 0;
-    pose.pose.orientation.w = 1;
-    path.poses.push_back(pose);
-  }
+    nav_msgs::Path path;
+    path.header.stamp = ros::Time::now();
+    path.header.frame_id = "/field";
+    path.poses.reserve(finalObjList.size() + 1);
+    path.poses.push_back(pose); // starting position
 
+    for (int i = 0; i < finalObjList.size(); i++)
+    {
+      pose.header.stamp = ros::Time::now();
+      pose.pose.position.x = finalObjList.at(i).x;
+      pose.pose.position.y = finalObjList.at(i).y;
+      pose.pose.position.z = 0;
+      pose.pose.orientation.x = 0;
+      pose.pose.orientation.y = 0;
+      pose.pose.orientation.z = 0;
+      pose.pose.orientation.w = 1;
+      path.poses.push_back(pose);
+    }
     //Publish path
-  pathPub.publish(path);
+    pathPub.publish(path);
+
+  }
+  return 0;
 }
 
-return 0;
-}
+
 
 /**
  * Publishes a number of objects
