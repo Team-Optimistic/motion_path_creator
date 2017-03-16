@@ -47,7 +47,14 @@ public:
   inline const sensor_msgs::PointCloud& getSmallObjs() const { return smallObjects; }
   inline const sensor_msgs::PointCloud& getBigObjs() const { return bigObjects; }
   inline const geometry_msgs::Point32& getCoords() const { return coords; }
+  inline const bool isNewMessage(){
+    if(new_Message){
+      new_Message = false;
+      return true;}
+    return false;
+  }
 private:
+  bool new_Message = false;
   ros::NodeHandle n;
   ros::Publisher mpcPub;
   ros::Subscriber smallObjsSub, bigObjsSub, odomSub, robotPOSSub, moveToPointSub, customMoveSub;

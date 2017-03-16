@@ -38,6 +38,7 @@ void mpCreator::bigObjsCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
 {
   //Convert interal copy of recent laser scan into point cloud
   sensor_msgs::convertPointCloud2ToPointCloud(*in, bigObjects);
+  new_Message = true;
 }
 
 /**

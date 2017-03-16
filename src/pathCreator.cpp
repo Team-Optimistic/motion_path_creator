@@ -38,12 +38,15 @@ int main(int argc, char **argv)
 
   ros::NodeHandle n;
   ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObjects", 10),
-  pathPub = n.advertise<nav_msgs::Path>("mpc/path", 10);
+  pathPub = n.advertise<nav_msgs::Path>("mpc/path", 1);
+  ros::Rate rate(100.0);//loop at 100HZ
 
   while (ros::ok())
   {
+    rate.sleep();//ensure even the new msg check maxes at 100 hz
     ros::spinOnce(); //Callbacks
-
+    if(!mpc.isNewMessage())
+      continue;
     std::vector<geometry_msgs::Point32> objList, finalObjList;
     geometry_msgs::Point32 coords = mpc.getCoords();
 
@@ -68,7 +71,7 @@ int main(int argc, char **argv)
     int objCount = 1;
     while (objCount <= 3 && objCount < objList.size())
     {
-        //If there are no objects left, publish what we have
+      //If there are no objects left, publish what we have
       if (objList.size() == 0)
       {
         break;
@@ -88,8 +91,6 @@ int main(int argc, char **argv)
       {
         break;
       }
-      //ROS_INFO("angle: %d", objList.;
-
       coords = objList.front(); //Move robot to that object's position
       objList.erase(objList.begin()); //Remove object from list so we don't consider it again
     }
