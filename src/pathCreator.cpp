@@ -131,16 +131,13 @@ int main(int argc, char **argv)
  */
  void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32> objs, const ros::Publisher pub)
  {
-  ROS_INFO("mpc: sending %d",numObjs);
-  ROS_INFO("mpc: really sending %d",objs.size());
-  //Convert objList to PointCloud2
+  //Convert objList to PointCloud
   sensor_msgs::PointCloud temp;
   temp.header.stamp = ros::Time::now();
   temp.header.frame_id = "/field";
-  temp.points.reserve(numObjs);
-  std::copy(objs.begin(), objs.begin() + numObjs, temp.points.begin());
+  temp.points = objs;
   pub.publish(temp);
-  ROS_INFO("mpc: sent %d",temp.points.size());
+ // ROS_INFO("mpc: sent %d",temp.points.size());
 }
 
 /**
