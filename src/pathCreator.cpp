@@ -68,8 +68,8 @@ int main(int argc, char **argv)
       objList.push_back(obj);
 
     //Loop until we have enough objects
-    int objCount = 1;
-    while (objCount <= 3 && objCount < objList.size())
+    int objCount = 0;
+    while (objCount < 3 && objCount < objList.size())
     {
       //If there are no objects left, publish what we have
       if (objList.size() == 0)
@@ -131,6 +131,8 @@ int main(int argc, char **argv)
  */
  void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32> objs, const ros::Publisher pub)
  {
+  ROS_INFO("mpc: sending %d",numObjs);
+  ROS_INFO("mpc: really sending %d",objs.size());
   //Convert objList to PointCloud2
   sensor_msgs::PointCloud temp;
   temp.header.stamp = ros::Time::now();
@@ -138,7 +140,7 @@ int main(int argc, char **argv)
   temp.points.reserve(numObjs);
   std::copy(objs.begin(), objs.begin() + numObjs, temp.points.begin());
   pub.publish(temp);
-
+  ROS_INFO("mpc: sent %d",temp.points.size());
 }
 
 /**
