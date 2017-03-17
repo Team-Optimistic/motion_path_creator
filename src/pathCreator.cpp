@@ -37,7 +37,7 @@ int main(int argc, char **argv)
   static mpCreator mpc;
 
   ros::NodeHandle n;
-  ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2>("mpc/nextObjects", 10),
+  ros::Publisher pub = n.advertise<sensor_msgs::PointCloud>("mpc/nextObjects", 10),
   pathPub = n.advertise<nav_msgs::Path>("mpc/path", 1);
   ros::Rate rate(100.0);//loop at 100HZ
 
@@ -132,12 +132,12 @@ int main(int argc, char **argv)
  void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32> objs, const ros::Publisher pub)
  {
   //Convert objList to PointCloud2
-  sensor_msgs::PointCloud2 out;
   sensor_msgs::PointCloud temp;
+  temp.header.stamp = ros::Time::now();
+  temp.header.frame_id = "/field";
   temp.points.reserve(numObjs);
   std::copy(objs.begin(), objs.begin() + numObjs, temp.points.begin());
-  sensor_msgs::convertPointCloudToPointCloud2(temp, out);
-  pub.publish(out);
+  pub.publish(temp);
 
 }
 
