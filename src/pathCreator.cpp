@@ -73,24 +73,25 @@ int main(int argc, char **argv)
     {
       //If there are no objects left, publish what we have
       if (objList.size() == 0)
-      {
         break;
-      }
-        //Recalculate costs with new position
+
+      //Recalculate costs with new position
       std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
         return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
       });
+
       float oldZ = objList.front().z;
-      objList.front().z = angleToPoint(coords,objList.front()); //save angle
+
       //Add cheapest element to final list and remove it from overall list
       finalObjList.push_back(objList.front());
       objCount++; //We just added a new object so increment
 
+      objList.front().z = angleToPoint(coords,objList.front()); //save angle
+
       //If we have a big object
       if (oldZ == ObjTypes::big)
-      {
         break;
-      }
+
       coords = objList.front(); //Move robot to that object's position
       objList.erase(objList.begin()); //Remove object from list so we don't consider it again
     }
