@@ -60,6 +60,21 @@ void mpCreator::odomCallback(const nav_msgs::Odometry::ConstPtr& in)
 		coords.y = pose_field.position.y;
 		coords.z = tf::getYaw(pose_field.pose.orientation);
 	}
+  catch (const tf2::ExtrapolationException& e)
+  {
+    ROS_INFO("mpCreator: odomCallback: Need to see the past");
+    return;
+  }
+  catch (const tf2::ConnectivityException& e)
+  {
+    ROS_INFO("mpCreator: odomCallback: Need more data for transform");
+    return;
+  }
+  catch (const tf2::LookupException& e)
+  {
+    ROS_INFO("mpCreator: odomCallback: Can't find frame");
+    return;
+  }
 }
 
 void mpCreator::moveToPointCallback(const geometry_msgs::PoseStamped::ConstPtr& in)
