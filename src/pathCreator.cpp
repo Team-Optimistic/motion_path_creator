@@ -60,6 +60,12 @@ int main(int argc, char **argv)
     pose.pose.position.z = 0;
     pose.pose.orientation = tf::createQuaternionMsgFromYaw(coords.z);
 
+    //Generate path
+    nav_msgs::Path path;
+    path.header.stamp = ros::Time::now();
+    path.header.frame_id = "/field";
+    path.poses.push_back(pose); // starting position
+
     //Add small objects
     for (auto&& obj : mpc.getSmallObjs().points)
       objList.push_back(obj);
@@ -72,51 +78,34 @@ int main(int argc, char **argv)
     int objCount = 0;
     while (objCount < 3 && objCount < objList.size())
     {
-      //If there are no objects left, publish what we have
-      if (objList.size() == 0)
-        break;
-
-      //Recalculate costs with new position
+      //calculate costs with position
       std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
         return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
       });
 
-      float oldZ = objList.front().z; //save obj type
-
-      //Add cheapest element to final list and remove it from overall list
+      //Add cheapest element to final list
       finalObjList.push_back(objList.front());
       objCount++; //We just added a new object so increment
 
-      objList.front().z = angleToPoint(coords,objList.front()); //save angle
-
+      pose.header.stamp = ros::Time::now();
+      pose.pose.position.x = objList.front().x;
+      pose.pose.position.y = objList.front().y;
+      pose.pose.orientation = tf::createQuaternionMsgFromYaw(angleToPoint(coords,objList.front()));
+      pose.header.seq = objList.front().z;
+      path.poses.push_back(pose); //goal location
+     
       //If we have a big object
-      if (oldZ == ObjTypes::big)
+      if (objList.front().z == ObjTypes::big)
         break;
 
+      objList.front().z = angleToPoint(coords,objList.front()); //puts point in same format as coords
       coords = objList.front(); //Move robot to that object's position
       objList.erase(objList.begin()); //Remove object from list so we don't consider it again
     }
 
     if(finalObjList.size() > 0)
-      publishObjects(objCount, finalObjList, pub);
-
-    //Generate path
-    nav_msgs::Path path;
-    path.header.stamp = ros::Time::now();
-    path.header.frame_id = "/field";
-    path.poses.reserve(finalObjList.size() + 1);
-    path.poses.push_back(pose); // starting position
-
-    //Fill path points
-    for (int i = 0; i < finalObjList.size(); i++)
-    {
-      pose.header.stamp = ros::Time::now();
-      pose.pose.position.x = finalObjList.at(i).x;
-      pose.pose.position.y = finalObjList.at(i).y;
-      pose.pose.position.z = 0;
-      pose.pose.orientation = tf::createQuaternionMsgFromYaw(finalObjList.at(i).z);
-      path.poses.push_back(pose);
-    }
+      publishObjects(objCount, finalObjList, pub); 
+    
 
     //Publish path
     pathPub.publish(path);
@@ -175,13 +164,13 @@ inline const float getTypeCost(const geometry_msgs::Point32& obj)
   switch (int(obj.z))
   {
     case ObjTypes::small:
-      return smallObjectCost;
+    return smallObjectCost;
 
     case ObjTypes::big:
-      return bigObjectCost;
+    return bigObjectCost;
 
     default:
-      return std::numeric_limits<int>::max();
+    return std::numeric_limits<int>::max();
   }
 }
 
