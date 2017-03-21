@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 
     //Loop until we have enough objects
     int objCount = 0;
-    while (objCount < 3 && objCount < objList.size())
+    while (objCount < 3 && objList.size() > 0)
     {
       //calculate costs with position
       std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
       pose.pose.orientation = tf::createQuaternionMsgFromYaw(angleToPoint(coords,objList.front()));
       pose.header.seq = objList.front().z;
       path.poses.push_back(pose); //goal location
-     
+
       //If we have a big object
       if (objList.front().z == ObjTypes::big)
         break;
@@ -104,8 +104,7 @@ int main(int argc, char **argv)
     }
 
     if(finalObjList.size() > 0)
-      publishObjects(objCount, finalObjList, pub); 
-    
+      publishObjects(objCount, finalObjList, pub);
 
     //Publish path
     pathPub.publish(path);
