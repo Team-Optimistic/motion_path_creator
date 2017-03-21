@@ -48,7 +48,10 @@ void mpCreator::bigObjsCallback(const sensor_msgs::PointCloud2::ConstPtr& in)
 void mpCreator::odomCallback(const nav_msgs::Odometry::ConstPtr& in)
 {
 	static tf::TransformListener listener;
-	geometry_msgs::PoseStamped pose_odom = *in;
+	geometry_msgs::PoseStamped pose_odom;
+  pose_odom.header = in->header;
+  pose_odom.pose = in->pose.pose;
+
 	geometry_msgs::PoseStamped pose_field;
 
 	try
@@ -56,8 +59,8 @@ void mpCreator::odomCallback(const nav_msgs::Odometry::ConstPtr& in)
 		pose_odom.header.stamp = ros::Time(0);
 		listener.transformPose("field", pose_odom, pose_field);
 
-		coords.x = pose_field.position.x;
-		coords.y = pose_field.position.y;
+		coords.x = pose_field.pose.position.x;
+		coords.y = pose_field.pose.position.y;
 		coords.z = tf::getYaw(pose_field.pose.orientation);
 	}
   catch (const tf2::ExtrapolationException& e)
