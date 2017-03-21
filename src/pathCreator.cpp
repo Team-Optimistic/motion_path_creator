@@ -90,7 +90,7 @@ int main(int argc, char **argv)
       pose.header.stamp = ros::Time::now();
       pose.pose.position.x = objList.front().x;
       pose.pose.position.y = objList.front().y;
-      pose.pose.orientation = tf::createQuaternionMsgFromYaw(angleToPoint(coords,objList.front()));
+      pose.pose.orientation = tf::createQuaternionMsgFromYaw(angleToPoint(coords, objList.front()));
       pose.header.seq = objList.front().z;
       path.poses.push_back(pose); //goal location
 
@@ -126,7 +126,7 @@ void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32>
   temp.header.frame_id = "/field";
   temp.points = objs;
   pub.publish(temp);
-  // ROS_INFO("mpc: sent %d",temp.points.size());
+  ROS_INFO("mpc: sent %d objects", temp.points.size());
 }
 
 /**
@@ -182,7 +182,7 @@ inline const float getTypeCost(const geometry_msgs::Point32& obj)
 */
 inline const float getCost(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& object, const float objectCost)
 {
-  constexpr float moveCost = 1, turnCost = 2;
+  constexpr float moveCost = 1, turnCost = 1/60;
 
   float turnDistance = (angleToPoint(robot, object) - robot.z) * (180.0 / M_PI);
 
