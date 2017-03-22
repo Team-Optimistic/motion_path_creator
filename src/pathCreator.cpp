@@ -172,13 +172,13 @@ inline const float getTypeCost(const geometry_msgs::Point32& obj)
   switch (int(obj.z))
   {
     case ObjTypes::small:
-    return smallObjectCost;
+      return smallObjectCost;
 
     case ObjTypes::big:
-    return bigObjectCost;
+      return bigObjectCost;
 
     default:
-    return std::numeric_limits<int>::max();
+      return std::numeric_limits<int>::max();
   }
 }
 
@@ -197,9 +197,7 @@ inline const float getCost(const geometry_msgs::Point32& robot, const geometry_m
   turnDistance = turnDistance < -180 ? turnDistance + 360 : turnDistance;
   turnDistance = turnDistance < 0 ? turnDistance * -1 : turnDistance;
 
-  const float straightDistance = distanceToPoint(robot, object);
-
-  return (straightDistance * moveCost + turnDistance * turnCost) * objectCost;
+  return (distanceToPoint(robot, object) * moveCost + turnDistance * turnCost) * objectCost;
 }
 
 /**
