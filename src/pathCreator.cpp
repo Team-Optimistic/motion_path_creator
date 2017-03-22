@@ -31,6 +31,9 @@ struct ObjTypes
   };
 };
 
+float moveCost = 1, turnCost = 1/60;
+float smallObjectCost = 1/1.5, bigObjectCost = 1/4;
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "motion_path_creator");
@@ -45,7 +48,7 @@ int main(int argc, char **argv)
   {
     rate.sleep();//ensure even the new msg check maxes at 100 hz
     ros::spinOnce(); //Callbacks
-    
+
     if(!mpc.isNewMessage())
       continue;
 
@@ -74,14 +77,22 @@ int main(int argc, char **argv)
     for (auto&& obj : mpc.getBigObjs().points)
       objList.push_back(obj);
 
+    //Costs for first iteration are different
+    moveCost = 1, turnCost = 1/600;
+    smallObjectCost = 1/1.5, bigObjectCost = 1/4;
+
     //Loop until we have enough objects
     int objCount = 0;
     while (objCount < 3 && objList.size() > 0)
     {
-      //calculate costs with position
+      //Calculate costs with position
       std::sort(objList.begin(), objList.end(), [coords](geometry_msgs::Point32 a, geometry_msgs::Point32 b) {
         return sortByCost(coords, a, getTypeCost(a), b, getTypeCost(b));
       });
+
+      //Set costs for remaining iterations
+      moveCost = 1, turnCost = 1/60;
+      smallObjectCost = 1/1.5, bigObjectCost = 1/4;
 
       //Add cheapest element to final list
       finalObjList.push_back(objList.front());
@@ -158,8 +169,6 @@ inline const float angleToPoint(const geometry_msgs::Point32& from, const geomet
 */
 inline const float getTypeCost(const geometry_msgs::Point32& obj)
 {
-  constexpr float smallObjectCost = 1/1.5, bigObjectCost = 1/4;
-
   switch (int(obj.z))
   {
     case ObjTypes::small:
@@ -182,8 +191,6 @@ inline const float getTypeCost(const geometry_msgs::Point32& obj)
 */
 inline const float getCost(const geometry_msgs::Point32& robot, const geometry_msgs::Point32& object, const float objectCost)
 {
-  constexpr float moveCost = 1, turnCost = 1/60;
-
   float turnDistance = (angleToPoint(robot, object) - robot.z) * (180.0 / M_PI);
 
   turnDistance = turnDistance > 180 ? turnDistance - 360 : turnDistance;
