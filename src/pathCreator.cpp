@@ -137,7 +137,7 @@ void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32>
   temp.header.frame_id = "/field";
   temp.points = objs;
   pub.publish(temp);
-  ROS_INFO("mpc: sent %d objects", temp.points.size());
+  ROS_INFO("mpc: sent %lu objects", temp.points.size());
 }
 
 /**
