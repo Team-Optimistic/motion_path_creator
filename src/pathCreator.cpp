@@ -31,8 +31,8 @@ struct ObjTypes
   };
 };
 
-float moveCost = 1, turnCost = 1/60;
-float smallObjectCost = 1/1.5, bigObjectCost = 1/4;
+float moveCost = 1, turnCost = 0;
+float smallObjectCost = 1/1.5, bigObjectCost = 1/4.0;
 
 int main(int argc, char **argv)
 {
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 
     //Costs for first iteration are different
     moveCost = 1, turnCost = 0;
-    smallObjectCost = 1/1.5, bigObjectCost = 1/4;
+    smallObjectCost = 1/1.5, bigObjectCost = 1.0/4.0;
 
     //Loop until we have enough objects
     int objCount = 0;
@@ -91,8 +91,8 @@ int main(int argc, char **argv)
       });
 
       //Set costs for remaining iterations
-      moveCost = 1, turnCost = 1/60;
-      smallObjectCost = 1/1.5, bigObjectCost = 1/4;
+      moveCost = 1, turnCost = 0;
+      smallObjectCost = 1/1.5, bigObjectCost = 1.0/4.0;
 
       //Add cheapest element to final list
       finalObjList.push_back(objList.front());
@@ -137,7 +137,6 @@ void publishObjects(const int numObjs, const std::vector<geometry_msgs::Point32>
   temp.header.frame_id = "/field";
   temp.points = objs;
   pub.publish(temp);
- // ROS_INFO("mpc: sent %d objects", temp.points.size());
 }
 
 /**
@@ -197,7 +196,10 @@ inline const float getCost(const geometry_msgs::Point32& robot, const geometry_m
   turnDistance = turnDistance < -180 ? turnDistance + 360 : turnDistance;
   turnDistance = turnDistance < 0 ? turnDistance * -1 : turnDistance;
 
-  return (distanceToPoint(robot, object) * moveCost + turnDistance * turnCost) * objectCost;
+	const float dist = distanceToPoint(robot, object);
+	ROS_INFO("d: %1.2f, a: %1.2f, c: %1.2f", dist, turnDistance, objectCost);
+
+  return (dist * moveCost + turnDistance * turnCost) * objectCost;
 }
 
 /**
