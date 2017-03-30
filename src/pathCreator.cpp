@@ -197,7 +197,7 @@ inline const float getCost(const geometry_msgs::Point32& robot, const geometry_m
   turnDistance = turnDistance < 0 ? turnDistance * -1 : turnDistance;
 
 	const float dist = distanceToPoint(robot, object);
-	ROS_INFO("d: %1.2f, a: %1.2f, c: %1.2f", dist, turnDistance, objectCost);
+	//ROS_INFO("d: %1.2f, a: %1.2f, c: %1.2f", dist, turnDistance, objectCost);
 
   return (dist * moveCost + turnDistance * turnCost) * objectCost;
 }
